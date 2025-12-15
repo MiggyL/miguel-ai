@@ -50,143 +50,153 @@ export default function Home() {
   };
 
   const quickPrompts = [
-    "💼 Tell me about your AI projects",
-    "🎓 What certifications do you have?",
-    "⚡ What technologies do you work with?",
-    "🎯 What role are you looking for?"
+    "Tell me about your AI projects",
+    "What certifications do you have?",
+    "What technologies do you work with?",
+    "What role are you looking for?"
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-900 to-pink-900">
-      <div className="min-h-screen flex items-center justify-center p-4 md:p-8">
-        <div className="w-full max-w-5xl">
-          
-          <div className="text-center mb-8">
-            <div className="inline-block">
-              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center text-4xl font-bold shadow-2xl shadow-purple-500/50">
-                M
+    <div className="min-h-screen bg-[##F0F4F8] text-[#e3e3e3]">
+      {/* Top Bar - Gemini Style */}
+      <header className="sticky top-0 z-50 bg-[##F0F4F8]/95 backdrop-blur-sm border-b border-[#2f2f2f]">
+        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+              M
+            </div>
+            <span className="text-lg font-medium">Miguel AI</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-gray-400">
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <span>Online</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        
+        {/* Avatar Card - Compact */}
+        <div className="mb-8 bg-[#282828] rounded-2xl p-6 border border-[#3c4043]">
+          <div className="grid md:grid-cols-3 gap-6 items-center">
+            <div className="md:col-span-1">
+              <div className="aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-blue-500/10 to-purple-600/10">
+                <Avatar isSpeaking={isLoading} />
               </div>
-              <h1 className="text-6xl font-black mb-3 bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
-                Miguel
-              </h1>
-              <p className="text-xl text-purple-300 mb-2 font-medium">AI-Powered Resume Assistant</p>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/20 border border-green-400/30">
-                <span className="w-2 h-2 rounded-full bg-green-400"></span>
-                <span className="text-green-300 text-sm font-semibold">Online</span>
+            </div>
+            <div className="md:col-span-2 space-y-3">
+              <h2 className="text-2xl font-semibold">Computer Science Graduate</h2>
+              <p className="text-gray-400">BS Computer Science • AI Specialization • Mapúa University</p>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-sm border border-blue-500/20">Python</span>
+                <span className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-sm border border-purple-500/20">AI/ML</span>
+                <span className="px-3 py-1 rounded-full bg-pink-500/10 text-pink-400 text-sm border border-pink-500/20">RAG Systems</span>
               </div>
             </div>
           </div>
+        </div>
 
-          <div className="mb-8">
-            <div className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl">
-              <div className="max-w-md mx-auto">
-                <div className="aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-purple-600/30 to-pink-600/30 mb-6 shadow-inner">
-                  <Avatar isSpeaking={isLoading} />
-                </div>
-                <div className="text-center space-y-3">
-                  <h2 className="text-2xl font-bold text-white">Computer Science Graduate</h2>
-                  <p className="text-purple-300">BS Computer Science • AI Specialization</p>
-                  <p className="text-purple-400 text-sm">Mapúa University</p>
-                  <div className="flex flex-wrap justify-center gap-2 pt-4">
-                    <span className="px-4 py-2 rounded-full bg-blue-500/20 text-blue-300 text-sm font-medium border border-blue-400/30">
-                      Python
-                    </span>
-                    <span className="px-4 py-2 rounded-full bg-purple-500/20 text-purple-300 text-sm font-medium border border-purple-400/30">
-                      AI/ML
-                    </span>
-                    <span className="px-4 py-2 rounded-full bg-pink-500/20 text-pink-300 text-sm font-medium border border-pink-400/30">
-                      RAG Systems
-                    </span>
-                  </div>
-                </div>
+        {/* Chat Area */}
+        <div className="space-y-6">
+          {messages.length === 0 ? (
+            <div className="text-center py-12">
+              <h3 className="text-4xl font-medium mb-4">Hi, I'm Miguel 👋</h3>
+              <p className="text-gray-400 text-lg mb-8">What would you like to know?</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-3xl mx-auto">
+                {quickPrompts.map((prompt, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setInput(prompt)}
+                    className="text-left p-4 rounded-xl bg-[#282828] hover:bg-[#303134] border border-[#3c4043] transition-all duration-200"
+                  >
+                    <p className="text-sm text-gray-300">{prompt}</p>
+                  </button>
+                ))}
               </div>
             </div>
-          </div>
-
-          <div className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden">
-            <div className="h-96 overflow-y-auto p-6 space-y-4">
-              {messages.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="text-6xl mb-6">👋</div>
-                  <h3 className="text-3xl font-bold mb-3 text-white">Hi! I'm Miguel</h3>
-                  <p className="text-purple-300 mb-8 text-lg">Ask me anything about my skills, projects, or experience</p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
-                    {quickPrompts.map((prompt, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setInput(prompt.replace(/[💼🎓⚡🎯]/g, '').trim())}
-                        className="group relative px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-400/30 hover:border-purple-400/60 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25"
-                      >
-                        <span className="text-white font-medium text-left block group-hover:text-purple-200 transition-colors">
-                          {prompt}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                messages.map((msg, i) => (
-                  <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    {msg.role === 'assistant' && (
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-lg font-bold flex-shrink-0 shadow-lg">
+          ) : (
+            <div className="space-y-8">
+              {messages.map((msg, i) => (
+                <div key={i} className="flex gap-4">
+                  <div className="flex-shrink-0">
+                    {msg.role === 'user' ? (
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm">
+                        Y
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
                         M
                       </div>
                     )}
-                    <div className={`max-w-[75%] px-6 py-4 rounded-2xl shadow-lg ${msg.role === 'user' ? 'bg-gradient-to-r from-purple-600 to-pink-600' : 'bg-white/10 border border-white/20'}`}>
-                      <p className="text-white leading-relaxed">{msg.content}</p>
-                    </div>
-                    {msg.role === 'user' && (
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-xl flex-shrink-0 shadow-lg">
-                        👤
-                      </div>
-                    )}
                   </div>
-                ))
-              )}
+                  <div className="flex-1 pt-1">
+                    <p className="text-sm font-medium mb-2 text-gray-400">
+                      {msg.role === 'user' ? 'You' : 'Miguel'}
+                    </p>
+                    <div className="text-base leading-relaxed text-gray-200">
+                      {msg.content}
+                    </div>
+                  </div>
+                </div>
+              ))}
               {isLoading && (
-                <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-bold shadow-lg">
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
                     M
                   </div>
-                  <div className="bg-white/10 border border-white/20 px-6 py-4 rounded-2xl">
+                  <div className="flex-1 pt-1">
+                    <p className="text-sm font-medium mb-2 text-gray-400">Miguel</p>
                     <div className="flex gap-1">
-                      <div className="w-3 h-3 rounded-full bg-purple-400 animate-bounce"></div>
-                      <div className="w-3 h-3 rounded-full bg-purple-400 animate-bounce"></div>
-                      <div className="w-3 h-3 rounded-full bg-purple-400 animate-bounce"></div>
+                      <div className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"></div>
+                      <div className="w-2 h-2 rounded-full bg-gray-500 animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                      <div className="w-2 h-2 rounded-full bg-gray-500 animate-bounce" style={{animationDelay: '0.2s'}}></div>
                     </div>
                   </div>
                 </div>
               )}
               <div ref={messagesEndRef} />
             </div>
+          )}
+        </div>
 
-            <div className="border-t border-white/20 p-6 bg-black/20">
-              <div className="flex gap-3">
-                <input
-                  type="text"
+        {/* Input Box - Fixed at Bottom */}
+        <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[##F0F4F8] via-[##F0F4F8] to-transparent p-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-[#282828] rounded-3xl border border-[#3c4043] shadow-2xl">
+              <div className="flex items-end gap-2 p-3">
+                <textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                  placeholder="Ask about my skills, projects, or experience..."
-                  className="flex-1 px-6 py-4 rounded-2xl bg-white/10 border border-white/20 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-white placeholder-purple-300/50 transition-all text-lg"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      sendMessage();
+                    }
+                  }}
+                  placeholder="Ask Miguel anything..."
+                  rows="1"
+                  className="flex-1 bg-transparent px-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none resize-none max-h-32"
                   disabled={isLoading}
                 />
                 <button
                   onClick={sendMessage}
                   disabled={isLoading || !input.trim()}
-                  className="px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 disabled:from-gray-600 disabled:to-gray-700 font-bold text-white transition-all duration-300 disabled:cursor-not-allowed shadow-lg hover:shadow-purple-500/50 hover:scale-105 text-lg"
+                  className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
                 >
-                  {isLoading ? '...' : 'Send'}
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
                 </button>
               </div>
-              <p className="text-purple-400/60 text-sm mt-4 text-center font-medium">
-                Powered by AI • Built with Next.js & Ready Player Me
-              </p>
             </div>
+            <p className="text-center text-xs text-gray-500 mt-2">Miguel AI can make mistakes. Verify important information.</p>
           </div>
-
         </div>
+
+        {/* Spacer for fixed input */}
+        <div className="h-32"></div>
       </div>
     </div>
   );
