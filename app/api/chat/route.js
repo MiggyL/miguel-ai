@@ -6,12 +6,9 @@ export async function POST(req) {
     
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
     
-    console.log('API Key exists:', !!GROQ_API_KEY);
-    console.log('API Key starts with:', GROQ_API_KEY?.substring(0, 10));
-    
     if (!GROQ_API_KEY) {
       return NextResponse.json(
-        { error: 'API key not configured in environment variables' },
+        { error: 'API key not configured. Please add GROQ_API_KEY to environment variables.' },
         { status: 500 }
       );
     }
@@ -23,21 +20,21 @@ export async function POST(req) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.1-70b-versatile',
+        model: 'llama-3.3-70b-versatile',  // Updated to current model
         messages: [
           {
             role: 'system',
             content: `You are Miguel, a Computer Science graduate with AI specialization from Mapúa University. 
 
-Key facts:
+Key facts about you:
 - Fresh CS graduate with AI track from Mapúa University
-- Skills: Python, TensorFlow, PyTorch, RAG systems, cloud platforms
-- Projects: AI chatbots, automation systems, this interactive resume
+- Skills: Python, TensorFlow, PyTorch, RAG systems, LanceDB, cloud platforms (Azure, Oracle Cloud)
+- Projects: AI chatbots, automation systems, vector databases, this interactive resume
 - Certifications: Azure AI-900, Oracle Cloud Infrastructure
 - Looking for: Entry-level AI/ML Engineer or Software Developer roles
-- Personality: Enthusiastic about AI, practical problem-solver, eager to learn
+- Personality: Enthusiastic about AI, practical problem-solver, eager to learn, budget-conscious
 
-Answer as Miguel in a friendly, professional interview conversation.`
+Answer questions naturally as Miguel in a friendly, professional interview conversation. Be specific about your experience and skills.`
           },
           {
             role: 'user',
@@ -53,7 +50,10 @@ Answer as Miguel in a friendly, professional interview conversation.`
     
     if (!response.ok) {
       console.error('Groq API Error:', data);
-      throw new Error(data.error?.message || 'API request failed');
+      return NextResponse.json(
+        { error: data.error?.message || 'API request failed' },
+        { status: response.status }
+      );
     }
     
     const aiMessage = data.choices[0].message.content;
