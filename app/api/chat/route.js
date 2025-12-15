@@ -6,9 +6,12 @@ export async function POST(req) {
     
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
     
+    console.log('API Key exists:', !!GROQ_API_KEY);
+    console.log('API Key starts with:', GROQ_API_KEY?.substring(0, 10));
+    
     if (!GROQ_API_KEY) {
       return NextResponse.json(
-        { error: 'API key not configured' },
+        { error: 'API key not configured in environment variables' },
         { status: 500 }
       );
     }
@@ -49,6 +52,7 @@ Answer as Miguel in a friendly, professional interview conversation.`
     const data = await response.json();
     
     if (!response.ok) {
+      console.error('Groq API Error:', data);
       throw new Error(data.error?.message || 'API request failed');
     }
     
