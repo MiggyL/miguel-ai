@@ -141,10 +141,11 @@ export default function Home() {
                         components={{
                           p: ({node, ...props}) => <p className="my-1" {...props} />,
                           strong: ({node, ...props}) => <strong className="font-semibold text-gray-900" {...props} />,
-                          ul: ({node, ...props}) => <ul className="list-none space-y-1 ml-0" {...props} />,
+                          ul: ({node, ...props}) => <ul className="list-none space-y-2 my-2 ml-0" {...props} />,
+                          ol: ({node, ...props}) => <ol className="list-none space-y-2 my-2 ml-0" {...props} />,
                           li: ({node, ...props}) => (
                             <li className="flex gap-2 items-start">
-                              <span className="text-blue-600 mt-1">•</span>
+                              <span className="text-blue-600 mt-1 flex-shrink-0">•</span>
                               <span className="flex-1">{props.children}</span>
                             </li>
                           ),
@@ -219,6 +220,7 @@ export default function Home() {
     </div>
   );
 }
+
 
 
 
