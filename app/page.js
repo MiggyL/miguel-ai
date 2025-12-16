@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Avatar from './components/Avatar';
+import ReactMarkdown from 'react-markdown';  // ADD THIS LINE
 
 export default function Home() {
   const [messages, setMessages] = useState([]);
@@ -135,24 +136,25 @@ export default function Home() {
                     <p className="text-sm font-medium mb-2 text-gray-500">
                       {msg.role === 'user' ? 'You' : 'Miguel'}
                     </p>
-                    <div className="text-base leading-relaxed text-gray-800 whitespace-pre-line">
-                      {msg.content.split('\n').map((line, i) => {
-                        // Check if line starts with bullet point
-                        if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
-                          return (
-                            <div key={i} className="flex gap-2 my-1">
-                              <span className="text-blue-600">•</span>
-                              <span>{line.replace(/^[•\-]\s*/, '')}</span>
-                            </div>
-                          );
-                        }
-                        // Check if it's a header (ends with colon or all caps)
-                        if (line.trim().endsWith(':') || (line.trim().length > 0 && line.trim() === line.trim().toUpperCase())) {
-                          return <div key={i} className="font-semibold mt-3 mb-1">{line}</div>;
-                        }
-                        // Regular text
-                        return line.trim() ? <div key={i} className="my-1">{line}</div> : <div key={i} className="h-2"></div>;
-                      })}
+                    <div className="text-base leading-relaxed text-gray-800">
+                      <ReactMarkdown
+                        components={{
+                          p: ({node, ...props}) => <p className="my-1" {...props} />,
+                          strong: ({node, ...props}) => <strong className="font-semibold text-gray-900" {...props} />,
+                          ul: ({node, ...props}) => <ul className="list-none space-y-1 ml-0" {...props} />,
+                          li: ({node, ...props}) => (
+                            <li className="flex gap-2 items-start">
+                              <span className="text-blue-600 mt-1">•</span>
+                              <span className="flex-1">{props.children}</span>
+                            </li>
+                          ),
+                          h1: ({node, ...props}) => <h1 className="text-lg font-bold mt-3 mb-1" {...props} />,
+                          h2: ({node, ...props}) => <h2 className="text-base font-bold mt-2 mb-1" {...props} />,
+                          h3: ({node, ...props}) => <h3 className="text-sm font-semibold mt-2 mb-1" {...props} />,
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
                     </div>
                   </div>
                 </div>
@@ -217,6 +219,7 @@ export default function Home() {
     </div>
   );
 }
+
 
 
 
