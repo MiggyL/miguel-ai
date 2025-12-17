@@ -2,13 +2,13 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Avatar from './components/Avatar';
-import ReactMarkdown from 'react-markdown';  // ADD THIS LINE
+import ReactMarkdown from 'react-markdown';
 
 export default function Home() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [currentVideo, setCurrentVideo] = useState(null);  // ADD THIS
+  const [currentVideo, setCurrentVideo] = useState(null);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -88,7 +88,22 @@ export default function Home() {
       <div className="max-w-4xl mx-auto px-4 py-4">
         
         {/* Avatar Card - Compact */}
-        <div className="mb-6 bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
+        <div className="mb-6 bg-white rounded-2xl p-4 border border-gray-200 shadow-sm relative">
+          
+          {/* QR Code - Top Right */}
+          
+            href="https://drive.google.com/file/d/1RyQRN930zeyjLZe2o_J52zWEB1kWyWQF"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute top-2 right-2 hover:scale-105 transition-transform duration-200 z-10"
+          >
+            <img
+              src="/QRCode.png"
+              alt="Resume QR Code"
+              className="w-24 h-24 border-2 border-gray-300 rounded-lg shadow-md bg-white"
+            />
+          </a>
+
           <div className="grid md:grid-cols-3 gap-6 items-center">
             <div className="md:col-span-1">
               <div className="aspect-[2/3] rounded-xl overflow-hidden">
