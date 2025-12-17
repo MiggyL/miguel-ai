@@ -9,7 +9,7 @@ export default function QRCode() {
       <img
         src="/QRcode.png"
         alt="Resume QR Code"
-        className="w-30 h-30 border-2 border-gray-300 rounded-lg shadow-md bg-white"
+        className="w-26 h-26 border-2 border-gray-300 rounded-lg shadow-md bg-white"
       />
     </a>
   );
