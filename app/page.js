@@ -36,7 +36,7 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           message: input,
-          model: selectedModel  // ADD THIS LINE
+          model: selectedModel
         }),
       });
   
@@ -44,7 +44,8 @@ export default function Home() {
       
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: data.message || data.error
+        content: data.message || data.error,
+        model: selectedModel  // ADD THIS LINE - stores which model was used
       }]);
     } catch (error) {
       console.error('Error:', error);
@@ -270,6 +271,7 @@ export default function Home() {
     </div>
   );
 }
+
 
 
 
