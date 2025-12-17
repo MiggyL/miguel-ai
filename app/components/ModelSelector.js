@@ -19,19 +19,22 @@ export default function ModelSelector() {
   const models = [
     {
       id: 'groq',
-      name: 'Groq Llama',
-      description: 'Fast and efficient',
+      name: 'Llama 3.3 70B',
+      provider: 'Groq',
+      description: 'Fast and efficient (Current)',
       isSelected: true
     },
     {
       id: 'gemini',
-      name: 'Google Gemini',
+      name: 'Gemini Pro',
+      provider: 'Google',
       description: 'Google\'s advanced AI',
       isSelected: false
     },
     {
       id: 'openai',
-      name: 'OpenAI GPT-4',
+      name: 'GPT-4o Mini',
+      provider: 'OpenAI',
       description: 'Most capable AI model',
       isSelected: false
     }
@@ -59,7 +62,7 @@ export default function ModelSelector() {
 
       {/* Dropdown Menu - Opens Upward */}
       {isOpen && (
-        <div className="absolute bottom-full left-0 mb-2 w-72 bg-white rounded-2xl border border-gray-200 shadow-xl z-50 overflow-hidden">
+        <div className="absolute bottom-full left-0 mb-2 w-80 bg-white rounded-2xl border border-gray-200 shadow-xl z-50 overflow-hidden">
           <div className="p-3">
             {/* Model Options */}
             <div className="space-y-1">
@@ -76,10 +79,13 @@ export default function ModelSelector() {
                       : 'border-2 border-transparent hover:bg-gray-50'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-semibold text-gray-900 text-sm">{model.name}</span>
+                  <div className="flex items-start justify-between mb-1">
+                    <div>
+                      <div className="font-semibold text-gray-900 text-sm">{model.name}</div>
+                      <div className="text-xs text-gray-500">{model.provider}</div>
+                    </div>
                     {model.isSelected && (
-                      <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-5 h-5 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     )}
