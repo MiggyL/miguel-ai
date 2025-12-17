@@ -103,7 +103,7 @@ export default function Home() {
               className="w-24 h-24 border-2 border-gray-300 rounded-lg shadow-md bg-white"
             />
           </a>
-
+        
           <div className="grid md:grid-cols-3 gap-6 items-center">
             <div className="md:col-span-1">
               <div className="aspect-[2/3] rounded-xl overflow-hidden">
@@ -270,3 +270,4 @@ export default function Home() {
     </div>
   );
 }
+
