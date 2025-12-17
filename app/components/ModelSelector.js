@@ -25,15 +25,15 @@ export default function ModelSelector({ selectedModel, onModelChange }) {
     },
     {
       id: 'gemini',
-      name: 'Gemini Pro',
+      name: 'Gemini 2.0 Flash',
       provider: 'Google',
-      description: 'Google\'s advanced AI'
+      description: 'Google\'s latest AI'
     },
     {
-      id: 'openai',
-      name: 'GPT-4o Mini',
-      provider: 'OpenAI',
-      description: 'Most capable AI model'
+      id: 'mistral',
+      name: 'Mistral Large',
+      provider: 'Mistral AI',
+      description: 'European AI powerhouse'
     }
   ];
 
@@ -41,7 +41,6 @@ export default function ModelSelector({ selectedModel, onModelChange }) {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Compact Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-1 px-3 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
@@ -57,7 +56,6 @@ export default function ModelSelector({ selectedModel, onModelChange }) {
         </svg>
       </button>
 
-      {/* Dropdown Menu */}
       {isOpen && (
         <div className="absolute bottom-full left-0 mb-2 w-80 bg-white rounded-2xl border border-gray-200 shadow-xl z-50 overflow-hidden">
           <div className="p-3">
