@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Avatar from './components/Avatar';
 import QRCode from './components/QRCode';
+import ModelSelector from './components/ModelSelector';
 import ReactMarkdown from 'react-markdown';
 
 export default function Home() {
@@ -236,6 +237,11 @@ export default function Home() {
                   className="flex-1 bg-transparent px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none resize-none max-h-32"
                   disabled={isLoading}
                 />
+                    
+                {/* Model Selector */}
+                <ModelSelector />
+                        
+                {/* Send Button */}
                 <button
                   onClick={sendMessage}
                   disabled={isLoading || !input.trim()}
@@ -257,4 +263,5 @@ export default function Home() {
     </div>
   );
 }
+
 
