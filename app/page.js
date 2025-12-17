@@ -85,7 +85,7 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <div className="max-w-2xl mx-auto px-4 py-4">
+      <div className="max-w-4xl mx-auto px-4 py-4">
         
         {/* Avatar Card - Compact */}
         <div className="mb-6 bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
@@ -248,6 +248,7 @@ export default function Home() {
     </div>
   );
 }
+
 
 
 
