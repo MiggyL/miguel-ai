@@ -7,32 +7,33 @@ export default function Avatar({ isSpeaking, videoToPlay, onVideoEnd }) {
   const idleVideoRef = useRef(null);
   const introVideoRef = useRef(null);
   const [isPlayingVideo, setIsPlayingVideo] = useState(false);
-  const [introPlayed, setIntroplayed] = useState(false);
+  const [introPlayed, setIntroPlayed] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
 
-  // Play intro video on mount
+  // Force play intro video on mount
   useEffect(() => {
-    if (introVideoRef.current && !introPlayed) {
-      introVideoRef.current.play();
-    }
-  }, [introPlayed]);
+    const playIntro = async () => {
+      if (introVideoRef.current && !introPlayed) {
+        try {
+          await introVideoRef.current.play();
+        } catch (error) {
+          console.log('Autoplay prevented:', error);
+          // If autoplay fails, skip to idle
+          handleIntroEnd();
+        }
+      }
+    };
+    
+    playIntro();
+  }, []);
 
-  // Handle intro video end
   const handleIntroEnd = () => {
     setShowIntro(false);
-    setIntroplayed(true);
-    // Start idle video
+    setIntroPlayed(true);
     if (idleVideoRef.current) {
-      idleVideoRef.current.play();
+      idleVideoRef.current.play().catch(err => console.log('Idle play error:', err));
     }
   };
-
-  // Start idle video after intro
-  useEffect(() => {
-    if (introPlayed && idleVideoRef.current && !isPlayingVideo) {
-      idleVideoRef.current.play();
-    }
-  }, [introPlayed, isPlayingVideo]);
 
   useEffect(() => {
     if (videoToPlay && videoRef.current && introPlayed) {
@@ -58,38 +59,35 @@ export default function Avatar({ isSpeaking, videoToPlay, onVideoEnd }) {
 
   return (
     <div className="w-full h-full relative bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center overflow-hidden">
-      {/* Intro Video (Plays Once) */}
-      {showIntro && (
-        <video
-          ref={introVideoRef}
-          className="w-full h-full object-contain"
-          onEnded={handleIntroEnd}
-          playsInline
-          disablePictureInPicture
-          controlsList="nodownload nofullscreen noremoteplayback"
-          style={{ pointerEvents: 'none' }}
-        >
-          <source src="/Intro.mp4" type="video/mp4" />
-        </video>
-      )}
+      {/* Intro Video */}
+      <video
+        ref={introVideoRef}
+        className={`w-full h-full object-contain transition-opacity duration-500 ${showIntro ? 'opacity-100' : 'opacity-0'}`}
+        onEnded={handleIntroEnd}
+        playsInline
+        muted
+        disablePictureInPicture
+        controlsList="nodownload nofullscreen noremoteplayback"
+        style={{ pointerEvents: 'none', display: showIntro ? 'block' : 'none' }}
+      >
+        <source src="/Intro.mp4" type="video/mp4" />
+      </video>
 
-      {/* Idle Loop Video (After Intro) */}
-      {!showIntro && (
-        <video
-          ref={idleVideoRef}
-          className={`w-full h-full object-contain transition-opacity duration-500 ${isPlayingVideo ? 'opacity-0' : 'opacity-100'}`}
-          loop
-          muted
-          playsInline
-          disablePictureInPicture
-          controlsList="nodownload nofullscreen noremoteplayback"
-          style={{ pointerEvents: 'none' }}
-        >
-          <source src="/Idle.mp4" type="video/mp4" />
-        </video>
-      )}
+      {/* Idle Loop Video */}
+      <video
+        ref={idleVideoRef}
+        className={`w-full h-full object-contain transition-opacity duration-500 ${!showIntro && !isPlayingVideo ? 'opacity-100' : 'opacity-0'}`}
+        loop
+        muted
+        playsInline
+        disablePictureInPicture
+        controlsList="nodownload nofullscreen noremoteplayback"
+        style={{ pointerEvents: 'none', display: !showIntro ? 'block' : 'none' }}
+      >
+        <source src="/Idle.mp4" type="video/mp4" />
+      </video>
 
-      {/* Content Video Overlay (Button Videos) */}
+      {/* Content Video Overlay */}
       {videoToPlay && introPlayed && (
         <video
           ref={videoRef}
