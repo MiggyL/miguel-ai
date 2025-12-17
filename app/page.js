@@ -85,11 +85,11 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 py-4">
+      <div className="max-w-3xl mx-auto px-4 py-4">
         
         {/* Avatar Card - Compact */}
         <div className="mb-6 bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
-          <div className="grid md:grid-cols-3 gap-6 items-center">
+          <div className="grid md:grid-cols-5 gap-6 items-center">
             <div className="md:col-span-1">
               <div className="aspect-[2/3] rounded-xl overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50 border border-gray-200">
                 <Avatar 
@@ -99,7 +99,7 @@ export default function Home() {
                 />
               </div>
             </div>
-            <div className="md:col-span-2 space-y-3">
+            <div className="md:col-span-4 space-y-3">
               <h2 className="text-2xl font-semibold text-gray-900">Miguel Lacanienta</h2>
               <p className="text-gray-600">BS Computer Science • AI Specialization • Mapúa University</p>
               <div className="flex flex-wrap gap-2">
@@ -248,6 +248,7 @@ export default function Home() {
     </div>
   );
 }
+
 
 
 
