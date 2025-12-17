@@ -6,7 +6,6 @@ export default function ModelSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -42,14 +41,14 @@ export default function ModelSelector() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Dropdown Button */}
+      {/* Compact Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors text-sm font-medium"
+        className="flex items-center gap-1 px-3 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
       >
-        <span className="text-gray-700">{selectedModel?.name}</span>
+        <span className="text-xs font-medium text-gray-700">{selectedModel?.name}</span>
         <svg 
-          className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
+          className={`w-3 h-3 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
           fill="none" 
           stroke="currentColor" 
           viewBox="0 0 24 24"
@@ -58,24 +57,18 @@ export default function ModelSelector() {
         </svg>
       </button>
 
-      {/* Dropdown Menu */}
+      {/* Dropdown Menu - Opens Upward */}
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-2xl border border-gray-200 shadow-xl z-50 overflow-hidden">
+        <div className="absolute bottom-full left-0 mb-2 w-72 bg-white rounded-2xl border border-gray-200 shadow-xl z-50 overflow-hidden">
           <div className="p-3">
-            {/* Header */}
-            <div className="px-3 py-2 mb-2">
-              <h3 className="text-sm font-semibold text-gray-900">Select Model</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Choose your AI assistant</p>
-            </div>
-
             {/* Model Options */}
             <div className="space-y-1">
               {models.map((model) => (
                 <button
                   key={model.id}
                   onClick={() => {
-                    // No functionality yet
                     console.log('Selected:', model.name);
+                    setIsOpen(false);
                   }}
                   className={`w-full text-left p-3 rounded-xl transition-all duration-200 ${
                     model.isSelected 
