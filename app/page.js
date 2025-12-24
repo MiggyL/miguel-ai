@@ -109,12 +109,12 @@ export default function Home() {
       {/* Top Bar - Light Gemini Style */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <a href="https://miguel-app.pages.dev/" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
               M
             </div>
             <span className="text-lg font-medium text-gray-800">MiguelAI</span>
-          </div>
+          </a>
           <DeploymentSelector />
         </div>
       </header>
