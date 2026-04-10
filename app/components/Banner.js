@@ -271,6 +271,11 @@ export default function Banner() {
         }}
       />
 
+      {/* Blur backdrop — behind images, subtitles, and avatar during section playback */}
+      {sectionVisible && (
+        <div className="absolute inset-0 z-[3] bg-black/60 backdrop-blur-sm transition-opacity duration-300" />
+      )}
+
       {/* Slideshow images — synced to SRT cues; 2x2 grid for 3-4 items, row for 1-2 */}
       {currentImages.length > 0 && (
         <div className="absolute inset-0 z-[4] flex items-center justify-center pointer-events-none" style={{ paddingBottom: currentImages.length >= 3 ? '12%' : '0' }}>
