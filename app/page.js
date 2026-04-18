@@ -22,6 +22,7 @@ function HomeContent() {
   const [selectedModel, setSelectedModel] = useState('groq'); // ADD THIS
   const [isAltAvatar, setIsAltAvatar] = useState(false);
   const [language, setLanguage] = useState('english'); // 'english' or 'german'
+  const [chatHighlight, setChatHighlight] = useState(false);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -141,7 +142,7 @@ function HomeContent() {
                 Portfolio
               </a>
             </div>
-            <span className="text-lg font-medium text-gray-800">MiguelAI</span>
+            <span className="text-lg font-medium text-gray-800">Miguel Lacanienta</span>
             <VersionToggle />
           </div>
           <DeploymentSelector />
@@ -154,7 +155,7 @@ function HomeContent() {
         {/* v2: Video Banner */}
         {version === 2 && (
           <div className="mb-6">
-            <Banner />
+            <Banner onChatHighlight={setChatHighlight} />
           </div>
         )}
 
@@ -461,7 +462,11 @@ function HomeContent() {
         {/* Input Box - Fixed at Bottom */}
         <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#F0F4F8] via-[#F0F4F8] to-transparent p-4">
           <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-3xl border border-gray-300 shadow-lg">
+            <div className={`bg-white rounded-3xl border shadow-lg transition-all duration-300 ${
+              chatHighlight
+                ? 'border-blue-400 shadow-[0_0_24px_rgba(96,165,250,0.55)] ring-2 ring-blue-300/60 scale-[1.01]'
+                : 'border-gray-300'
+            }`}>
               <div className="flex items-end gap-2 p-3">
                 <textarea
                   value={input}
