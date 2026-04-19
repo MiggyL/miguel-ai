@@ -20,24 +20,27 @@ export default function VersionToggle() {
   };
 
   return (
-    <div className="flex items-center bg-gray-100 rounded-full p-0.5 border border-gray-200">
+    <div className="flex items-center gap-1 text-[10px] leading-none tracking-wide select-none">
       <button
         onClick={() => switchVersion(1)}
-        className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer ${
+        className={`cursor-pointer transition-colors ${
           currentVersion === 1
-            ? 'bg-white text-gray-900 shadow-sm'
-            : 'text-gray-500 hover:text-gray-700'
+            ? 'text-gray-700 font-medium'
+            : 'text-gray-300 hover:text-gray-500'
         }`}
+        aria-label="View v1"
       >
         v1
       </button>
+      <span className="text-gray-300">|</span>
       <button
         onClick={() => switchVersion(2)}
-        className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer ${
+        className={`cursor-pointer transition-colors ${
           currentVersion === 2
-            ? 'bg-white text-gray-900 shadow-sm'
-            : 'text-gray-500 hover:text-gray-700'
+            ? 'text-gray-700 font-medium'
+            : 'text-gray-300 hover:text-gray-500'
         }`}
+        aria-label="View v2"
       >
         v2
       </button>
