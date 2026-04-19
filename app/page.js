@@ -363,9 +363,9 @@ function HomeContent() {
         {/* Chat Area */}
         <div className="space-y-6">
           {messages.length === 0 ? (
-            <div className="text-center py-6">
-              <h3 className="text-4xl font-medium text-gray-900 mb-4">Hi, I'm Miguel 👋</h3>
-              <p className="text-gray-600 text-lg mb-8">What would you like to know?</p>
+            <div className="text-center py-2">
+              <h3 className="text-4xl font-medium text-gray-900 mb-1">Hi, I'm Miguel 👋</h3>
+              <p className="text-gray-600 text-lg mb-4">What would you like to know?</p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-3xl mx-auto">
                 {quickPrompts.map((prompt, i) => (
