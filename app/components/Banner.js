@@ -228,6 +228,7 @@ export default function Banner({ onChatHighlight } = {}) {
   };
 
   const handleSectionClick = (section) => {
+    setGameOpen(false);
     const src = section === 'About'
       ? `/about/${language.toLowerCase()}.mp4`
       : (SECTION_VIDEO_MAP[section]
