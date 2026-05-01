@@ -1,9 +1,14 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { ASSET_CONFIG } from '@/lib/assets';
 import IdleOverlay from './IdleOverlay';
 import Subtitles from './Subtitles';
+import FloatingControls from './FloatingControls';
+
+const CV_URL = 'https://drive.google.com/file/d/1RyQRN930zeyjLZe2o_J52zWEB1kWyWQF';
+const ChromeDino = dynamic(() => import('react-chrome-dino'), { ssr: false });
 
 const V2_BASE = `${ASSET_CONFIG.basePath}/v2`;
 
@@ -115,6 +120,28 @@ export default function Banner({ onChatHighlight } = {}) {
   const [isMuted, setIsMuted] = useState(true);
   const [language, setLanguage] = useState('EN');
   const [overlayVisible, setOverlayVisible] = useState(true);
+  const [gameOpen, setGameOpen] = useState(false);
+
+  useEffect(() => {
+    if (!gameOpen) return;
+    const onKey = (e) => { if (e.key === 'Escape') setGameOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [gameOpen]);
+
+  useEffect(() => {
+    if (!gameOpen) return;
+    const host = document.getElementById('dino-game-host');
+    if (!host) return;
+    const prune = () => {
+      const canvases = host.querySelectorAll('canvas.runner-canvas');
+      for (let i = 1; i < canvases.length; i++) canvases[i].remove();
+    };
+    prune();
+    const obs = new MutationObserver(prune);
+    obs.observe(host, { childList: true, subtree: true });
+    return () => obs.disconnect();
+  }, [gameOpen]);
   const [sectionVisible, setSectionVisible] = useState(false);
   const [activeSection, setActiveSection] = useState(null);
   const [currentImages, setCurrentImages] = useState([]);
@@ -494,6 +521,34 @@ export default function Banner({ onChatHighlight } = {}) {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      <FloatingControls
+        language={language}
+        onLanguageChange={setLanguage}
+        isMuted={isMuted}
+        onToggleMute={toggleAudio}
+        onPlayAbout={() => handleSectionClick('About')}
+        onPlayGame={() => setGameOpen(true)}
+        cvHref={CV_URL}
+      />
+
+      {gameOpen && (
+        <div className="absolute inset-0 z-[70] bg-white overflow-hidden">
+          <div className="w-full h-full flex flex-col justify-center" id="dino-game-host">
+            <ChromeDino />
+          </div>
+          <button
+            onClick={() => setGameOpen(false)}
+            className="absolute top-2 right-2 z-[71] w-8 h-8 rounded-full bg-gray-900/90 text-white hover:bg-gray-800 flex items-center justify-center cursor-pointer shadow-lg"
+            aria-label="Close game"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
         </div>
       )}
     </div>
