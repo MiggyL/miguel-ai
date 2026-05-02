@@ -15,7 +15,7 @@
 import { NextResponse } from 'next/server';
 
 import { hasCoverLetterInjection } from '../../lib/prompt-guards.js';
-import { buildSystemPrompt } from '../../lib/profile-context.js';
+import { buildSystemPrompt, rankProjects } from '../../lib/profile-context.js';
 import {
   buildCoverLetterUserPrompt,
   buildRefinementUserPrompt,
@@ -91,18 +91,20 @@ export async function POST(req) {
   const mode = fields.mode || 'generate';
   let systemPrompt;
   let userPrompt;
+  let pickedProjects = [];
 
   if (mode === 'generate') {
     const { company, role, jd, recruiterName, hook } = fields;
     if (!company || !role) return bad(400, 'company and role are required');
 
     if (anyInjection([company, role, jd, recruiterName, hook])) {
-      return NextResponse.json({ letter: REFUSAL });
+      return NextResponse.json({ letter: REFUSAL, pickedProjects: [] });
     }
 
     const tone = TONES.has(fields.tone) ? fields.tone : 'professional';
     const language = LANGUAGES.has(fields.language) ? fields.language : 'EN';
 
+    pickedProjects = rankProjects(jd, 2).map((p) => p.title);
     systemPrompt = buildSystemPrompt({ jd, tone, language });
     userPrompt = buildCoverLetterUserPrompt({
       company,
@@ -132,7 +134,7 @@ export async function POST(req) {
     if (model === 'groq') letter = await callGroq(systemPrompt, userPrompt);
     else if (model === 'gemini') letter = await callGemini(systemPrompt, userPrompt);
     else letter = await callMistral(systemPrompt, userPrompt);
-    return NextResponse.json({ letter, model });
+    return NextResponse.json({ letter, model, pickedProjects });
   } catch (err) {
     console.error('cover-letter error', err);
     return bad(502, err.message || 'Upstream model error');

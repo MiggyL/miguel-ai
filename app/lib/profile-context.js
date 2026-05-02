@@ -257,7 +257,7 @@ ${p.tagline}
 // Build the system prompt — a focused, role-specific instruction set plus
 // a structured profile snapshot. Returns a single string.
 export function buildSystemPrompt({ jd = '', tone = 'professional', language = 'EN' } = {}) {
-  const top = rankProjects(jd, 3);
+  const top = rankProjects(jd, 2);
   const projectBlocks = top.map(projectToContextBlock).join('\n\n');
   const langLine =
     language === 'DE'
@@ -295,16 +295,19 @@ Certifications:
 MOST-RELEVANT PROJECTS (pre-selected for the JD):
 ${projectBlocks}
 
-WRITING RULES
-- Address the recruiter by name if provided, else "Hiring Manager".
-- 280–380 words. Three or four short paragraphs. No bullet lists, no markdown headings.
-- Open with a specific hook tied to the company or role — never "I am writing to apply".
-- Mention 2–3 of the pre-selected projects with concrete numbers and outcomes from the bullets above.
-- Tie those projects to the JD requirements explicitly.
-- Close with one clear sign-off line and "Sincerely, ${PROFILE_BASICS.name}".
+WRITING RULES — STANDARD LETTER LENGTH, NO PADDING
+- Address: "Dear ${PROFILE_BASICS.name === 'Miguel Lacanienta' ? '<recruiter name>' : ''}" if a name is given, else "Dear Hiring Manager".
+- HARD LIMIT: 200–260 words. Treat the upper bound as a ceiling, not a target. Shorter is better.
+- Exactly THREE short paragraphs:
+    1. Hook (≤2 sentences): one specific reason this company / role caught the writer's eye. Never "I am writing to apply".
+    2. Proof (≤4 sentences): one or at most two of the pre-selected projects, each with one concrete outcome / metric from the bullets, tied to a JD requirement.
+    3. Close (≤2 sentences): a forward-looking line plus a sign-off.
+- BANNED phrases: "I am confident that", "I look forward to", "I believe my", "as evident in my", "long-time admirer", "thrilled", "perfect fit", "passion for".
+- No bullet lists. No markdown headings. No section labels. Plain prose only.
+- Final line MUST be exactly: "Sincerely, ${PROFILE_BASICS.name}" on its own line, preceded by one blank line.
 - ${toneLine}
 - ${langLine}
-- Output ONLY the letter body. No preamble, no commentary, no JSON.`;
+- Output ONLY the letter body. No preamble, no commentary, no JSON, no explanation of choices.`;
 }
 
 export { PROFILE_BASICS, PROJECTS, rankProjects };
