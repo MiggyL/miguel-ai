@@ -2,38 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-const MODELS = [
-  {
-    id: 'groq',
-    name: 'Llama 3.3',
-    sub: 'via Groq',
-    blurb: 'Fast, sharp, opinionated.',
-    accent: 'from-orange-500 to-pink-500',
-    dot: '#F55036',
-  },
-  {
-    id: 'mistral',
-    name: 'Mistral Large',
-    sub: 'mistral.ai',
-    blurb: 'Balanced and structured.',
-    accent: 'from-amber-500 to-rose-500',
-    dot: '#FA520F',
-  },
-  {
-    id: 'gemini',
-    name: 'Gemma 3 27B',
-    sub: 'via Google',
-    blurb: 'Polished and verbose.',
-    accent: 'from-sky-500 to-indigo-500',
-    dot: '#1A73E8',
-  },
-];
+import ModelSelector from '../components/ModelSelector';
 
-const TONES = [
-  { id: 'professional', emoji: '📋', label: 'Professional' },
-  { id: 'friendly', emoji: '👋', label: 'Friendly' },
-  { id: 'enthusiastic', emoji: '⚡', label: 'Enthusiastic' },
-];
+const MODELS_META = {
+  groq: { name: 'Llama 3.3 70B', dot: '#F55036' },
+  mistral: { name: 'Mistral Large', dot: '#FA520F' },
+  gemini: { name: 'Gemma 3 27B', dot: '#1A73E8' },
+};
 
 const EXAMPLE = {
   company: 'Cambridge University Press & Assessment',
@@ -43,6 +18,61 @@ const EXAMPLE = {
   recruiterName: 'Alex',
 };
 
+function FlagUK() {
+  return (
+    <svg viewBox="0 0 60 30" preserveAspectRatio="none" className="w-full h-full block" aria-hidden="true">
+      <clipPath id="cl-uk-clip"><rect width="60" height="30" /></clipPath>
+      <g clipPath="url(#cl-uk-clip)">
+        <rect width="60" height="30" fill="#012169" />
+        <path d="M0,0 60,30 M60,0 0,30" stroke="white" strokeWidth="6" />
+        <path d="M0,0 60,30 M60,0 0,30" stroke="#C8102E" strokeWidth="3" clipPath="url(#cl-uk-clip)" />
+        <path d="M30,0 v30 M0,15 h60" stroke="white" strokeWidth="10" />
+        <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" strokeWidth="6" />
+      </g>
+    </svg>
+  );
+}
+
+function FlagDE() {
+  return (
+    <svg viewBox="0 0 60 30" preserveAspectRatio="none" className="w-full h-full block" aria-hidden="true">
+      <rect y="0" width="60" height="10" fill="#000000" />
+      <rect y="10" width="60" height="10" fill="#DD0000" />
+      <rect y="20" width="60" height="10" fill="#FFCE00" />
+    </svg>
+  );
+}
+
+function FlagToggle({ language, onChange }) {
+  const opts = [
+    { id: 'EN', flag: <FlagUK />, label: 'English' },
+    { id: 'DE', flag: <FlagDE />, label: 'Deutsch' },
+  ];
+  return (
+    <div className="inline-flex items-center gap-1 p-0.5 rounded-full bg-slate-100 border border-slate-200">
+      {opts.map((o) => {
+        const active = language === o.id;
+        return (
+          <button
+            key={o.id}
+            type="button"
+            onClick={() => onChange(o.id)}
+            title={`Output language: ${o.label}`}
+            aria-pressed={active}
+            className={`flex items-center justify-center w-7 h-7 rounded-full overflow-hidden transition-all ${
+              active
+                ? 'ring-2 ring-violet-500 ring-offset-1 ring-offset-slate-100'
+                : 'opacity-40 hover:opacity-80'
+            }`}
+          >
+            {o.flag}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 const MIGUEL_EMAIL = 'mmlacanienta@gmail.com';
 
 export default function CoverLetterPage() {
@@ -51,9 +81,9 @@ export default function CoverLetterPage() {
     role: '',
     jd: '',
     recruiterName: '',
-    tone: 'professional',
     language: 'EN',
     model: 'groq',
+    // tone is always "professional" — sent server-side, not user-controlled
   });
   const [letter, setLetter] = useState('');
   const [usedModel, setUsedModel] = useState('');
@@ -99,7 +129,7 @@ export default function CoverLetterPage() {
       const r = await fetch('/api/cover-letter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'generate', ...form }),
+        body: JSON.stringify({ mode: 'generate', tone: 'professional', ...form }),
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || 'Request failed');
@@ -210,17 +240,23 @@ export default function CoverLetterPage() {
 
         {/* Single compact card with all inputs */}
         <Card>
-          <div className="flex items-baseline justify-between mb-3">
-            <h2 className="text-sm font-semibold text-slate-900">
-              Tell me about your role
-            </h2>
-            <button
-              type="button"
-              onClick={fillExample}
-              className="text-xs text-violet-600 hover:text-violet-700 font-medium"
-            >
-              Fill with example →
-            </button>
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <h2 className="text-sm font-semibold text-slate-900">
+                Tell me about your role
+              </h2>
+              <button
+                type="button"
+                onClick={fillExample}
+                className="text-xs text-violet-600 hover:text-violet-700 font-medium shrink-0"
+              >
+                Fill with example →
+              </button>
+            </div>
+            <FlagToggle
+              language={form.language}
+              onChange={(v) => set('language', v)}
+            />
           </div>
           <form onSubmit={generate} className="space-y-3">
             <div className="grid sm:grid-cols-2 gap-3">
@@ -259,60 +295,19 @@ export default function CoverLetterPage() {
             />
           </form>
 
-          {/* Inline option rows — always visible, just compact */}
-          <div className="mt-4 pt-4 border-t border-slate-200/70 space-y-2.5">
-            <OptionRow label="Tone">
-              {TONES.map((t) => (
-                <Pill
-                  key={t.id}
-                  active={form.tone === t.id}
-                  onClick={() => set('tone', t.id)}
-                >
-                  <span className="mr-1">{t.emoji}</span>
-                  {t.label}
-                </Pill>
-              ))}
-            </OptionRow>
-            <OptionRow label="Language">
-              {[
-                { id: 'EN', label: 'English' },
-                { id: 'DE', label: 'Deutsch' },
-              ].map((l) => (
-                <Pill
-                  key={l.id}
-                  active={form.language === l.id}
-                  onClick={() => set('language', l.id)}
-                >
-                  {l.label}
-                </Pill>
-              ))}
-            </OptionRow>
-            <OptionRow label="Model">
-              {MODELS.map((m) => (
-                <Pill
-                  key={m.id}
-                  active={form.model === m.id}
-                  onClick={() => set('model', m.id)}
-                  title={m.blurb}
-                >
-                  <span
-                    className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle"
-                    style={{ backgroundColor: m.dot }}
-                  />
-                  {m.name}
-                </Pill>
-              ))}
-            </OptionRow>
-          </div>
         </Card>
 
-        {/* CTA */}
-        <div className="mt-4">
+        {/* CTA + model selector — same row, model dropdown opens upward */}
+        <div className="mt-4 flex items-center gap-2">
+          <ModelSelector
+            selectedModel={form.model}
+            onModelChange={(m) => set('model', m)}
+          />
           <button
             type="button"
             onClick={generate}
             disabled={!canGenerate}
-            className={`group relative w-full overflow-hidden rounded-xl px-6 py-3.5 text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`group relative flex-1 overflow-hidden rounded-xl px-6 py-3 text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
               canGenerate
                 ? 'text-white shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/30 hover:-translate-y-0.5'
                 : 'text-white shadow-md'
@@ -337,7 +332,6 @@ export default function CoverLetterPage() {
                 </>
               )}
             </span>
-            {/* Shimmer */}
             {canGenerate && (
               <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
             )}
@@ -374,10 +368,10 @@ export default function CoverLetterPage() {
                       className="w-1.5 h-1.5 rounded-full"
                       style={{
                         backgroundColor:
-                          MODELS.find((m) => m.id === usedModel)?.dot || '#fff',
+                          MODELS_META[usedModel]?.dot || '#fff',
                       }}
                     />
-                    {MODELS.find((m) => m.id === usedModel)?.name || usedModel}
+                    {MODELS_META[usedModel]?.name || usedModel}
                   </span>
                 )}
               </div>
@@ -532,33 +526,6 @@ function Label({ children, inline }) {
   );
 }
 
-function OptionRow({ label, children }) {
-  return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      <span className="text-[10.5px] uppercase tracking-wider text-slate-500 font-semibold w-[68px] shrink-0">
-        {label}
-      </span>
-      {children}
-    </div>
-  );
-}
-
-function Pill({ active, onClick, children, title }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors border ${
-        active
-          ? 'bg-violet-600 text-white border-violet-600'
-          : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:text-slate-900'
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
 
 function Input({ label, required, optional, hint, ...rest }) {
   return (
