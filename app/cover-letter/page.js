@@ -38,7 +38,7 @@ const EXAMPLE = {
 
 function FlagUK() {
   return (
-    <svg viewBox="0 0 60 30" preserveAspectRatio="none" className="w-full h-full block" aria-hidden="true">
+    <svg viewBox="0 0 60 30" preserveAspectRatio="xMidYMid slice" className="w-full h-full block" aria-hidden="true">
       <clipPath id="cl-uk-clip"><rect width="60" height="30" /></clipPath>
       <g clipPath="url(#cl-uk-clip)">
         <rect width="60" height="30" fill="#012169" />
@@ -53,7 +53,7 @@ function FlagUK() {
 
 function FlagDE() {
   return (
-    <svg viewBox="0 0 60 30" preserveAspectRatio="none" className="w-full h-full block" aria-hidden="true">
+    <svg viewBox="0 0 60 30" preserveAspectRatio="xMidYMid slice" className="w-full h-full block" aria-hidden="true">
       <rect y="0" width="60" height="10" fill="#000000" />
       <rect y="10" width="60" height="10" fill="#DD0000" />
       <rect y="20" width="60" height="10" fill="#FFCE00" />
@@ -67,7 +67,7 @@ function FlagToggle({ language, onChange }) {
     { id: 'DE', flag: <FlagDE />, label: 'Deutsch' },
   ];
   return (
-    <div className="inline-flex items-center gap-1 p-0.5 rounded-full bg-slate-100 border border-slate-200">
+    <div className="inline-flex items-center gap-1 p-0.5 rounded-lg bg-slate-100 border border-slate-200">
       {opts.map((o) => {
         const active = language === o.id;
         return (
@@ -77,7 +77,7 @@ function FlagToggle({ language, onChange }) {
             onClick={() => onChange(o.id)}
             title={`Output language: ${o.label}`}
             aria-pressed={active}
-            className={`flex items-center justify-center w-7 h-7 rounded-full overflow-hidden transition-all ${
+            className={`flex items-center justify-center w-7 h-7 rounded-md overflow-hidden transition-all ${
               active
                 ? 'ring-2 ring-violet-500 ring-offset-1 ring-offset-slate-100'
                 : 'opacity-40 hover:opacity-80'
