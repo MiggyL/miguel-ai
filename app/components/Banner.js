@@ -110,7 +110,7 @@ const PROJECT_SEGMENTS = {
 
 export { PROJECT_SEGMENTS };
 
-export default function Banner({ onChatHighlight } = {}) {
+export default function Banner({ onChatHighlight, centerSlot, onLanguageChange } = {}) {
   const videoRef = useRef(null);
   const sectionVideoRef = useRef(null);
   const audioRef = useRef(null);
@@ -121,6 +121,13 @@ export default function Banner({ onChatHighlight } = {}) {
   const [language, setLanguage] = useState('EN');
   const [overlayVisible, setOverlayVisible] = useState(true);
   const [gameOpen, setGameOpen] = useState(false);
+
+  // Notify parent when the banner's language changes — used by hosts that
+  // need to mirror the language selection (e.g. cover-letter page sends
+  // it to the LLM as the output language).
+  useEffect(() => {
+    onLanguageChange?.(language);
+  }, [language, onLanguageChange]);
 
   useEffect(() => {
     if (!gameOpen) return;
@@ -440,8 +447,15 @@ export default function Banner({ onChatHighlight } = {}) {
         </button>
       </div>
 
-      {/* Idle overlay: name, title, section buttons */}
-      <IdleOverlay visible={overlayVisible} onSectionClick={handleSectionClick} />
+      {/* Idle overlay: name, title, section buttons.
+          When the host page passes a centerSlot render-prop, render that
+          instead of the default IdleOverlay (e.g. cover-letter page swaps
+          the section buttons for its form). The render-prop receives
+          { language, setLanguage } so the slot can stay in sync with the
+          banner's language toggle. */}
+      {typeof centerSlot === 'function'
+        ? centerSlot({ language, setLanguage, overlayVisible })
+        : <IdleOverlay visible={overlayVisible} onSectionClick={handleSectionClick} />}
 
       {/* About highlight overlay — non-interactive replica of IdleOverlay with glow on mentioned buttons */}
       {activeSection === 'About' && (

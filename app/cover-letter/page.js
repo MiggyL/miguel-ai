@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import FloatingControls from '../components/FloatingControls';
+import Banner from '../components/Banner';
 
 /* ----- Configuration ----- */
 
@@ -156,69 +156,6 @@ function SocialIcons() {
   );
 }
 
-/* ----- Mini Avatar (cover-letter-specific intro video player) ----- */
-
-// Plays an idle loop of Miguel's "About" video by default. When isPlayingIntro
-// is set, switches to the cover-letter intro video unmuted and plays once.
-// The cover-letter-specific intro lives at /cover-letter/intro-{lang}.mp4.
-// Falls back to /about/{lang}.mp4 if the cover-letter video isn't available.
-function MiniAvatar({ language, isPlayingIntro, onIntroEnded }) {
-  const videoRef = useRef(null);
-  const [hasIntroAsset, setHasIntroAsset] = useState(true);
-
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    const lang = language.toLowerCase();
-    const idleSrc = `/about/${lang}.mp4`;
-    const introSrc = hasIntroAsset
-      ? `/cover-letter/intro-${lang}.mp4`
-      : `/about/${lang}.mp4`;
-
-    if (isPlayingIntro) {
-      v.src = introSrc;
-      v.loop = false;
-      v.muted = false;
-      v.currentTime = 0;
-      const onEnd = () => onIntroEnded?.();
-      const onErr = () => {
-        if (hasIntroAsset) {
-          // Cover-letter-specific intro doesn't exist; fall back to /about
-          setHasIntroAsset(false);
-        } else {
-          onIntroEnded?.();
-        }
-      };
-      v.addEventListener('ended', onEnd);
-      v.addEventListener('error', onErr);
-      v.play().catch(() => {});
-      return () => {
-        v.removeEventListener('ended', onEnd);
-        v.removeEventListener('error', onErr);
-      };
-    } else {
-      v.src = idleSrc;
-      v.loop = true;
-      v.muted = true;
-      v.currentTime = 0;
-      v.play().catch(() => {});
-    }
-  }, [isPlayingIntro, language, hasIntroAsset, onIntroEnded]);
-
-  return (
-    <div className="relative bg-black overflow-hidden md:rounded-l-2xl md:rounded-tr-none rounded-t-2xl md:min-h-[300px] aspect-video md:aspect-auto">
-      <video
-        ref={videoRef}
-        playsInline
-        className="w-full h-full object-cover"
-      />
-      {!isPlayingIntro && (
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
-      )}
-    </div>
-  );
-}
-
 /* ----- Flag toggle ----- */
 
 function FlagUK() {
@@ -311,7 +248,6 @@ export default function CoverLetterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
-  const [isPlayingIntro, setIsPlayingIntro] = useState(false);
   const resultRef = useRef(null);
 
   const update = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -408,33 +344,31 @@ export default function CoverLetterPage() {
 
   return (
     <div className="min-h-screen bg-[#F0F4F8] text-[#1f1f1f] overflow-x-hidden">
-      {/* Sticky header — name on the left, tabs + socials on the right */}
+      {/* Sticky header — name on the left, tabs CENTERED, socials on the right */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+        <div className="max-w-4xl mx-auto px-4 py-3 grid grid-cols-3 items-center gap-3">
           <span className="text-base sm:text-lg font-medium text-gray-800 truncate">
             Miguel Lacanienta
           </span>
-          <div className="flex items-center gap-3">
+          <div className="flex justify-center">
             <HeaderTabs active="cover-letter" />
+          </div>
+          <div className="flex justify-end">
             <SocialIcons />
           </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 pt-4 pb-24">
-        {/* Avatar + form share one panel — same shape as the Resume Avatar
-            container and the Portfolio Banner container. */}
-        <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="grid md:grid-cols-[2fr_3fr]">
-            <MiniAvatar
-              language={form.language}
-              isPlayingIntro={isPlayingIntro}
-              onIntroEnded={() => setIsPlayingIntro(false)}
-            />
-
-            <div className="p-5 sm:p-6">
-              <div className="flex items-center justify-between gap-3 mb-3">
-                <div className="flex items-center gap-3 min-w-0">
+        {/* Portfolio v2 Banner — bg video, idle avatar, EN|DE flag, mute,
+            CV. The form lives INSIDE the banner where the section buttons
+            normally go, via Banner's centerSlot prop. */}
+        <Banner
+          onLanguageChange={(lang) => set('language', lang)}
+          centerSlot={() => (
+            <div className="absolute inset-0 z-[6] flex items-center justify-center px-4 sm:px-8 pt-12 pb-16 sm:pt-14 sm:pb-12 pointer-events-none">
+              <div className="w-full max-w-md rounded-2xl bg-white/95 backdrop-blur-md shadow-xl border border-white/40 p-4 sm:p-5 pointer-events-auto">
+                <div className="flex items-center justify-between gap-3 mb-3">
                   <h2 className="text-sm font-semibold text-slate-900">
                     Tell me about your role
                   </h2>
@@ -446,94 +380,87 @@ export default function CoverLetterPage() {
                     Fill with example →
                   </button>
                 </div>
-                <FlagToggle
-                  language={form.language}
-                  onChange={(v) => set('language', v)}
-                />
-              </div>
-              <form onSubmit={generate} className="space-y-3">
-                <div className="grid sm:grid-cols-2 gap-3">
+                <form onSubmit={generate} className="space-y-2.5">
+                  <div className="grid sm:grid-cols-2 gap-2.5">
+                    <Input
+                      label="Company"
+                      required
+                      value={form.company}
+                      onChange={update('company')}
+                      placeholder="ACME Corp"
+                      maxLength={200}
+                    />
+                    <Input
+                      label="Role"
+                      required
+                      value={form.role}
+                      onChange={update('role')}
+                      placeholder="Senior Software Engineer"
+                      maxLength={200}
+                    />
+                  </div>
                   <Input
-                    label="Company"
-                    required
-                    value={form.company}
-                    onChange={update('company')}
-                    placeholder="ACME Corp"
-                    maxLength={200}
+                    label="Recruiter name"
+                    optional
+                    value={form.recruiterName}
+                    onChange={update('recruiterName')}
+                    placeholder="Hiring Manager"
+                    maxLength={120}
                   />
-                  <Input
-                    label="Role"
-                    required
-                    value={form.role}
-                    onChange={update('role')}
-                    placeholder="Senior Software Engineer"
-                    maxLength={200}
+                  <Textarea
+                    label="Job description"
+                    value={form.jd}
+                    onChange={update('jd')}
+                    placeholder="Paste the JD — makes the letter specific."
+                    maxLength={6000}
+                    rows={3}
+                  />
+                </form>
+
+                {/* Split-button CTA — gradient Draft on left, model picker on right */}
+                <div
+                  className={`group mt-3 relative flex items-stretch rounded-xl transition-all ${
+                    canGenerate
+                      ? 'shadow-md shadow-violet-500/25 hover:shadow-lg'
+                      : 'shadow-sm'
+                  } ${!canGenerate ? 'opacity-60' : ''}`}
+                  style={{
+                    background:
+                      'linear-gradient(120deg, #7c3aed 0%, #6366f1 50%, #2563eb 100%)',
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={generate}
+                    disabled={!canGenerate}
+                    className="relative flex-1 overflow-hidden rounded-l-xl px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed transition-transform hover:bg-white/5 active:scale-[0.99]"
+                  >
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                      {loading ? (
+                        <>
+                          <Spinner /> Drafting…
+                        </>
+                      ) : (
+                        <>
+                          <SparkleIcon />{' '}
+                          {letter ? 'Regenerate' : 'Draft the letter'}
+                        </>
+                      )}
+                    </span>
+                    {canGenerate && (
+                      <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                    )}
+                  </button>
+                  <div className="w-px bg-white/25 my-2" />
+                  <InlineModelMenu
+                    value={form.model}
+                    onChange={(m) => set('model', m)}
                   />
                 </div>
-                <Input
-                  label="Recruiter name"
-                  optional
-                  value={form.recruiterName}
-                  onChange={update('recruiterName')}
-                  placeholder="Hiring Manager"
-                  maxLength={120}
-                />
-                <Textarea
-                  label="Job description"
-                  value={form.jd}
-                  onChange={update('jd')}
-                  placeholder="Paste the JD — it's what makes the letter specific."
-                  maxLength={6000}
-                  rows={4}
-                />
-              </form>
+              </div>
             </div>
-          </div>
-        </section>
-
-        {/* Split-button: gradient Draft CTA on the left, inline model picker on the right */}
-        <div
-          className={`group mt-4 relative flex items-stretch rounded-xl transition-all ${
-            canGenerate
-              ? 'shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/30'
-              : 'shadow-md'
-          } ${!canGenerate ? 'opacity-60' : ''}`}
-          style={{
-            background:
-              'linear-gradient(120deg, #7c3aed 0%, #6366f1 50%, #2563eb 100%)',
-          }}
-        >
-          <button
-            type="button"
-            onClick={generate}
-            disabled={!canGenerate}
-            className="relative flex-1 overflow-hidden rounded-l-xl px-6 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed transition-transform hover:bg-white/5 active:scale-[0.99]"
-          >
-            <span className="relative z-10 flex items-center justify-center gap-2">
-              {loading ? (
-                <>
-                  <Spinner /> Drafting your letter…
-                </>
-              ) : (
-                <>
-                  <SparkleIcon />{' '}
-                  {letter ? 'Regenerate' : 'Draft the letter'}
-                  <kbd className="hidden sm:inline-flex items-center gap-0.5 ml-2 px-1.5 py-0.5 rounded bg-white/20 text-[10px] font-mono">
-                    ⌘↵
-                  </kbd>
-                </>
-              )}
-            </span>
-            {canGenerate && (
-              <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-            )}
-          </button>
-          <div className="w-px bg-white/25 my-2.5" />
-          <InlineModelMenu
-            value={form.model}
-            onChange={(m) => set('model', m)}
-          />
-        </div>
+          )}
+        />
 
         {error && (
           <p className="mt-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
@@ -621,20 +548,8 @@ export default function CoverLetterPage() {
         </p>
       </main>
 
-      {/* Floating compass — same FAB as the other Miguel sites */}
-      <FloatingControls
-        language={form.language}
-        onLanguageChange={(v) => set('language', v)}
-        isMuted={true}
-        onToggleMute={() => {
-          /* no audio loop on this page */
-        }}
-        onPlayAbout={() => setIsPlayingIntro(true)}
-        onPlayGame={() => {
-          window.open(RESUME_URL, '_blank', 'noopener,noreferrer');
-        }}
-        cvHref={CV_URL}
-      />
+      {/* Banner internally renders its own <FloatingControls> — no need
+          to render another one here. */}
     </div>
   );
 }
