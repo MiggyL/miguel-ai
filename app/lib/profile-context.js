@@ -237,16 +237,19 @@ Programming & Graph Certified: Python, JavaScript, Neo4j (Graph Data Science, Pr
 
 https://miguel-app.pages.dev/`;
 
-// Normalize whitespace so the rendered letter looks like a proper letter:
-// (1) blank line after the salutation; (2) paragraphs separated by exactly
-// one blank line; (3) leading/trailing whitespace trimmed.
+// Normalize whitespace so the rendered letter looks like a proper letter.
+// LLMs sometimes output every paragraph on its own line with single newlines
+// (no blanks between), and sometimes with blanks. Force every newline run
+// to become a paragraph break (one blank line) so the output is consistent
+// regardless of model. Only the body is normalized — the signature block is
+// appended afterwards with its own internal structure intact.
 function normalizeWhitespace(body) {
   return body
     .replace(/\r\n/g, '\n')
-    // Collapse 3+ blank lines to a single blank line.
-    .replace(/\n{3,}/g, '\n\n')
-    // Ensure a blank line after a salutation (Dear …, / Sehr geehrte … ,)
-    .replace(/^((?:Dear|Sehr geehrte[r]?|Hi)[^\n]*,)\n(?!\n)/m, '$1\n\n')
+    // Every run of one or more newlines becomes exactly two — i.e. a blank
+    // line between every line of body text. LLMs don't manually wrap, so a
+    // newline reliably indicates a paragraph break.
+    .replace(/\n+/g, '\n\n')
     .trim();
 }
 
