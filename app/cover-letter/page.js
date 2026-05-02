@@ -63,7 +63,6 @@ export default function CoverLetterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
-  const [voiceOpen, setVoiceOpen] = useState(false);
   const resultRef = useRef(null);
 
   const update = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -189,34 +188,30 @@ export default function CoverLetterPage() {
   return (
     <main className="min-h-screen bg-[#FAFAFA] text-slate-900 antialiased">
       {/* Subtle gradient mesh in the hero only */}
-      <div className="absolute inset-x-0 top-0 h-[420px] -z-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -left-20 w-[36rem] h-[36rem] rounded-full bg-violet-200/40 blur-3xl" />
-        <div className="absolute -top-20 right-0 w-[32rem] h-[32rem] rounded-full bg-sky-200/40 blur-3xl" />
+      <div className="absolute inset-x-0 top-0 h-[280px] -z-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-32 -left-20 w-[32rem] h-[32rem] rounded-full bg-violet-200/40 blur-3xl" />
+        <div className="absolute -top-20 right-0 w-[28rem] h-[28rem] rounded-full bg-sky-200/40 blur-3xl" />
       </div>
 
-      <div className="relative z-10 max-w-3xl mx-auto px-5 sm:px-6 pt-14 sm:pt-20 pb-24">
+      <div className="relative z-10 max-w-4xl mx-auto px-4 pt-6 pb-12">
         {/* Hero */}
-        <header className="mb-12 sm:mb-16">
-          <p className="text-xs uppercase tracking-[0.2em] text-violet-600 font-semibold mb-3">
+        <header className="mb-6">
+          <p className="text-xs uppercase tracking-[0.2em] text-violet-600 font-semibold mb-2">
             Cover-letter studio
           </p>
-          <h1 className="font-serif text-4xl sm:text-5xl tracking-tight text-slate-900 leading-[1.1]">
+          <h1 className="font-serif text-3xl sm:text-4xl tracking-tight text-slate-900 leading-[1.1]">
             Hi, I'm Miguel.
           </h1>
-          <p className="mt-4 text-base sm:text-lg text-slate-600 leading-relaxed max-w-xl">
+          <p className="mt-2 text-sm sm:text-base text-slate-600 leading-relaxed max-w-xl">
             Tell me about your role and I'll draft you a cover letter on the
-            spot — using the LLM you pick. Powered by my own{' '}
-            <code className="px-1.5 py-0.5 rounded bg-slate-200/70 font-mono text-[0.85em] text-slate-700">
-              /api/cover-letter
-            </code>{' '}
-            with three different model providers.
+            spot — using the LLM you pick.
           </p>
         </header>
 
-        {/* Single form card */}
+        {/* Single compact card with all inputs */}
         <Card>
-          <div className="flex items-baseline justify-between mb-5">
-            <h2 className="text-base font-semibold text-slate-900">
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="text-sm font-semibold text-slate-900">
               Tell me about your role
             </h2>
             <button
@@ -227,7 +222,7 @@ export default function CoverLetterPage() {
               Fill with example →
             </button>
           </div>
-          <form onSubmit={generate} className="space-y-4">
+          <form onSubmit={generate} className="space-y-3">
             <div className="grid sm:grid-cols-2 gap-3">
               <Input
                 label="Company"
@@ -246,149 +241,78 @@ export default function CoverLetterPage() {
                 maxLength={200}
               />
             </div>
+            <Input
+              label="Recruiter name"
+              optional
+              value={form.recruiterName}
+              onChange={update('recruiterName')}
+              placeholder="Hiring Manager"
+              maxLength={120}
+            />
             <Textarea
               label="Job description"
               value={form.jd}
               onChange={update('jd')}
-              placeholder="Paste the JD here — it's what makes the letter specific."
+              placeholder="Paste the JD — it's what makes the letter specific."
               maxLength={6000}
-              rows={5}
+              rows={4}
             />
           </form>
+
+          {/* Inline option rows — always visible, just compact */}
+          <div className="mt-4 pt-4 border-t border-slate-200/70 space-y-2.5">
+            <OptionRow label="Tone">
+              {TONES.map((t) => (
+                <Pill
+                  key={t.id}
+                  active={form.tone === t.id}
+                  onClick={() => set('tone', t.id)}
+                >
+                  <span className="mr-1">{t.emoji}</span>
+                  {t.label}
+                </Pill>
+              ))}
+            </OptionRow>
+            <OptionRow label="Language">
+              {[
+                { id: 'EN', label: 'English' },
+                { id: 'DE', label: 'Deutsch' },
+              ].map((l) => (
+                <Pill
+                  key={l.id}
+                  active={form.language === l.id}
+                  onClick={() => set('language', l.id)}
+                >
+                  {l.label}
+                </Pill>
+              ))}
+            </OptionRow>
+            <OptionRow label="Model">
+              {MODELS.map((m) => (
+                <Pill
+                  key={m.id}
+                  active={form.model === m.id}
+                  onClick={() => set('model', m.id)}
+                  title={m.blurb}
+                >
+                  <span
+                    className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle"
+                    style={{ backgroundColor: m.dot }}
+                  />
+                  {m.name}
+                </Pill>
+              ))}
+            </OptionRow>
+          </div>
         </Card>
 
-        {/* Voice strip — collapsed by default. Click to customize. */}
-        <div className="mt-3">
-          <button
-            type="button"
-            onClick={() => setVoiceOpen((v) => !v)}
-            className="w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-white border border-slate-200/80 hover:border-slate-300 transition-colors text-left"
-          >
-            <div className="flex items-center gap-2.5 text-sm text-slate-600 min-w-0">
-              <span className="text-slate-400 text-xs uppercase tracking-wider font-semibold shrink-0">
-                Voice
-              </span>
-              <span className="flex items-center gap-1.5 text-slate-700 font-medium truncate">
-                <span>{TONES.find((t) => t.id === form.tone)?.emoji}</span>
-                {TONES.find((t) => t.id === form.tone)?.label}
-                <span className="text-slate-300">·</span>
-                {form.language === 'EN' ? 'English' : 'Deutsch'}
-                <span className="text-slate-300">·</span>
-                <span
-                  className="inline-block w-1.5 h-1.5 rounded-full shrink-0"
-                  style={{
-                    backgroundColor:
-                      MODELS.find((m) => m.id === form.model)?.dot,
-                  }}
-                />
-                {MODELS.find((m) => m.id === form.model)?.name}
-              </span>
-            </div>
-            <span className="text-xs text-violet-600 font-medium shrink-0 flex items-center gap-1">
-              {voiceOpen ? 'Done' : 'Customize'}
-              <Chevron open={voiceOpen} />
-            </span>
-          </button>
-
-          {voiceOpen && (
-            <div className="mt-2 p-5 sm:p-6 rounded-xl bg-white border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.08)] space-y-5">
-              <div>
-                <Label>Tone</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {TONES.map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => set('tone', t.id)}
-                      className={`px-2 py-2 rounded-lg border text-sm font-medium transition-all ${
-                        form.tone === t.id
-                          ? 'border-violet-500 bg-violet-50 text-violet-900 ring-2 ring-violet-500/20'
-                          : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span className="mr-1">{t.emoji}</span>
-                      <span className="text-[13px]">{t.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-                <div className="flex items-center gap-3">
-                  <Label inline>Language</Label>
-                  <div className="inline-flex p-0.5 rounded-lg bg-slate-100 border border-slate-200">
-                    {[
-                      { id: 'EN', label: 'English' },
-                      { id: 'DE', label: 'Deutsch' },
-                    ].map((l) => (
-                      <button
-                        key={l.id}
-                        type="button"
-                        onClick={() => set('language', l.id)}
-                        className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                          form.language === l.id
-                            ? 'bg-white text-slate-900 shadow-sm'
-                            : 'text-slate-500 hover:text-slate-700'
-                        }`}
-                      >
-                        {l.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Label inline>Recruiter</Label>
-                  <input
-                    type="text"
-                    value={form.recruiterName}
-                    onChange={update('recruiterName')}
-                    placeholder="Optional"
-                    maxLength={120}
-                    className="px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-violet-400 focus:ring-2 focus:ring-violet-500/20 w-32"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label>Model</Label>
-                <div className="grid sm:grid-cols-3 gap-2">
-                  {MODELS.map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => set('model', m.id)}
-                      className={`text-left p-2.5 rounded-lg border transition-all ${
-                        form.model === m.id
-                          ? 'border-violet-500 bg-violet-50 ring-2 ring-violet-500/20'
-                          : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <span
-                          className="w-1.5 h-1.5 rounded-full shrink-0"
-                          style={{ backgroundColor: m.dot }}
-                        />
-                        <span className="font-medium text-slate-900 text-[13px]">
-                          {m.name}
-                        </span>
-                      </div>
-                      <div className="text-[10.5px] text-slate-500">{m.blurb}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* CTA */}
-        <div className="mt-8 sm:mt-10">
+        <div className="mt-4">
           <button
             type="button"
             onClick={generate}
             disabled={!canGenerate}
-            className={`group relative w-full overflow-hidden rounded-2xl px-6 py-4 text-base font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`group relative w-full overflow-hidden rounded-xl px-6 py-3.5 text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
               canGenerate
                 ? 'text-white shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/30 hover:-translate-y-0.5'
                 : 'text-white shadow-md'
@@ -420,7 +344,7 @@ export default function CoverLetterPage() {
           </button>
 
           {error && (
-            <p className="mt-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+            <p className="mt-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
               {error}
             </p>
           )}
@@ -428,7 +352,7 @@ export default function CoverLetterPage() {
 
         {/* Result */}
         {(letter || loading) && (
-          <section ref={resultRef} className="mt-12 sm:mt-16">
+          <section ref={resultRef} className="mt-8">
             {/* Matched-on chips */}
             {picked.length > 0 && (
               <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -499,7 +423,7 @@ export default function CoverLetterPage() {
                 </div>
 
                 {/* Refine */}
-                <div className="mt-8 p-5 sm:p-6 rounded-2xl bg-white border border-slate-200">
+                <div className="mt-6 p-4 sm:p-5 rounded-2xl bg-white border border-slate-200">
                   <h3 className="text-sm font-semibold text-slate-900 mb-1">
                     Refine it
                   </h3>
@@ -558,7 +482,7 @@ export default function CoverLetterPage() {
           </section>
         )}
 
-        <footer className="mt-16 pt-6 border-t border-slate-200 text-xs text-slate-500 leading-relaxed">
+        <footer className="mt-10 pt-5 border-t border-slate-200 text-xs text-slate-500 leading-relaxed">
           Letters are generated by an LLM; review carefully before sending. Some
           companies have policies about AI-assisted applications. Inputs aren't
           stored. The candidate profile this page draws from lives at{' '}
@@ -576,7 +500,7 @@ export default function CoverLetterPage() {
 
 function Card({ children }) {
   return (
-    <div className="rounded-2xl bg-white border border-slate-200/80 p-5 sm:p-7 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.08)]">
+    <div className="rounded-2xl bg-white border border-slate-200/80 p-4 sm:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.08)]">
       {children}
     </div>
   );
@@ -608,22 +532,31 @@ function Label({ children, inline }) {
   );
 }
 
-function Chevron({ open }) {
+function OptionRow({ label, children }) {
   return (
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-      aria-hidden="true"
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className="text-[10.5px] uppercase tracking-wider text-slate-500 font-semibold w-[68px] shrink-0">
+        {label}
+      </span>
+      {children}
+    </div>
+  );
+}
+
+function Pill({ active, onClick, children, title }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors border ${
+        active
+          ? 'bg-violet-600 text-white border-violet-600'
+          : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:text-slate-900'
+      }`}
     >
-      <polyline points="6 9 12 15 18 9" />
-    </svg>
+      {children}
+    </button>
   );
 }
 
