@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 import FloatingControls from '../components/FloatingControls';
+import Subtitles from '../components/Subtitles';
 
 // Chrome dino game — same lazy-loaded import the resume Banner uses.
 const ChromeDino = dynamic(
@@ -535,6 +536,24 @@ export default function CoverLetterPage() {
                   onChange={(m) => set('model', m)}
                 />
               </div>
+
+              {/* Pre-letter "Talk to Miguel" — visible until a letter is drafted.
+                  Once `letter` lands, the post-letter button under the
+                  letterhead takes over and this one hides. */}
+              {!letter && (
+                <div className="mt-3 flex items-center justify-between gap-2">
+                  <p className="text-[11px] text-slate-500 leading-snug">
+                    Fill the form and draft a letter — or reach out directly.
+                  </p>
+                  <a
+                    href={mailtoHref()}
+                    className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                  >
+                    Talk to Miguel
+                    <span aria-hidden>→</span>
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         </CoverLetterBanner>
@@ -890,7 +909,10 @@ function CoverLetterBanner({
           loop
           muted
           playsInline
-          className="w-full h-full object-cover"
+          onClick={isPlayingIntro ? undefined : () => onPlayIntro?.()}
+          className={`w-full h-full object-cover ${
+            isPlayingIntro ? '' : 'cursor-pointer'
+          }`}
           src={`${V2_BASE}/bg.mp4`}
         />
       </div>
@@ -901,8 +923,10 @@ function CoverLetterBanner({
         loop
         muted
         playsInline
-        onClick={() => onPlayIntro?.()}
-        className="absolute bottom-0 right-0 object-cover rounded-br-2xl h-[45%] md:h-[35%] cursor-pointer"
+        onClick={isPlayingIntro ? undefined : () => onPlayIntro?.()}
+        className={`absolute bottom-0 right-0 object-cover rounded-br-2xl h-[45%] md:h-[35%] ${
+          isPlayingIntro ? '' : 'cursor-pointer'
+        }`}
         style={{ aspectRatio: '1/1', zIndex: 5 }}
         src={`${V2_BASE}/idle.mp4`}
       />
@@ -915,6 +939,17 @@ function CoverLetterBanner({
           isPlayingIntro ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         style={{ aspectRatio: '1/1', zIndex: 7 }}
+      />
+
+      {/* Subtitles — same component the resume Banner uses for About. Only
+          renders cues while the intro is playing. */}
+      <Subtitles
+        videoRef={introRef}
+        srtUrl={
+          isPlayingIntro
+            ? `/cover-letter/cover-${language.toLowerCase()}.srt`
+            : undefined
+        }
       />
 
       {/* Top-left: EN|DE toggle + Play intro button */}
