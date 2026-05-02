@@ -1,0 +1,16 @@
+1
+00:00:00,000 --> 00:00:06,720
+ Hi! I'm Miguel Lacanienta. This interactive resume lets you explore my profile using the buttons
+
+2
+00:00:06,720 --> 00:00:13,120
+ beside my avatar covering my objective, skills, certifications, applied skills, and projects.
+
+3
+00:00:13,120 --> 00:00:18,000
+ You can also chat with me below. Just ask anything about my background and I'll respond
+
+4
+00:00:18,000 --> 00:00:22,240
+ through your choice of AI model, including Llama, Gemma, and Mistral.
+

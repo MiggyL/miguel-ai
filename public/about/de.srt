@@ -1,0 +1,16 @@
+1
+00:00:00,000 --> 00:00:02,780
+ Hallo, ich bin Miguel Lacanienta.
+
+2
+00:00:02,780 --> 00:00:09,580
+ Mit diesem interaktiven Lebenslauf können Sie mein Profil über die Schaltflächen neben meinem Avatar erkunden.
+
+3
+00:00:09,580 --> 00:00:18,240
+ Dort finden Sie Informationen zu meinen Zielen, Fähigkeiten, Zertifizierungen, praktischen Fertigkeiten und Projekten.
+
+4
+00:00:18,240 --> 00:00:28,880
+ Sie können mir unten auch Fragen stellen, alles zu meinem Hintergrund und ich antworte über das KI-Modell Ihrer Wahl, darunter Lama, Gemma und Mistral.
+

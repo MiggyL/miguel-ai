@@ -1,14 +1,122 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Avatar from './components/Avatar';
 import QRCode from './components/QRCode';
 import ModelSelector from './components/ModelSelector';
-import DeploymentSelector from './components/DeploymentSelector';
+import VersionToggle from './components/VersionToggle';
+import Banner from './components/Banner';
 import ReactMarkdown from 'react-markdown';
 import { getVideoPath, ASSET_CONFIG } from '@/lib/assets';
 
-export default function Home() {
+const SOCIALS = [
+  {
+    name: 'LinkedIn',
+    href: 'https://www.linkedin.com/in/miguel-lacanienta/',
+    svg: (
+      <svg viewBox="0 0 24 24" className="w-full h-full" aria-hidden="true">
+        <rect width="24" height="24" rx="4" fill="#0A66C2" />
+        <path fill="white" d="M7.06 9.5h-3v9h3v-9zM5.56 5.05c-.97 0-1.75.78-1.75 1.75s.78 1.75 1.75 1.75 1.75-.78 1.75-1.75-.78-1.75-1.75-1.75zM20.5 18.5h-3v-4.6c0-1.1-.9-2-2-2s-2 .9-2 2v4.6h-3v-9h3v1.2c.7-1 1.8-1.5 3-1.5 2.2 0 4 1.8 4 4v5.3z" />
+      </svg>
+    ),
+  },
+  {
+    name: 'YouTube',
+    href: 'https://youtube.com/playlist?list=PLwgavg1OXIfGKhX9FHoEG0aIbhMaj5dEH',
+    svg: (
+      <svg viewBox="0 0 24 24" className="w-full h-full" aria-hidden="true">
+        <rect x="0" y="3.5" width="24" height="17" rx="4" fill="#FF0000" />
+        <polygon points="10,8 10,16 16,12" fill="white" />
+      </svg>
+    ),
+  },
+  {
+    name: 'TikTok',
+    href: 'https://www.tiktok.com/@mlacanienta',
+    svg: (
+      <svg viewBox="0 0 24 24" className="w-full h-full" aria-hidden="true">
+        <rect width="24" height="24" rx="4" fill="black" />
+        <path
+          fill="#25F4EE"
+          transform="translate(-1 1)"
+          d="M16.5 7.6a3.6 3.6 0 0 1-2.8-3.2v-.3h-2.6v9.7c0 1.2-1 2.2-2.2 2.2a2.2 2.2 0 0 1-1.7-3.6 2.2 2.2 0 0 1 1.7-.8c.2 0 .5 0 .7.1v-2.6a4.7 4.7 0 0 0-.7 0 4.7 4.7 0 0 0-3.4 8 4.8 4.8 0 0 0 8.1-3.4v-5a6.1 6.1 0 0 0 3.5 1.1V7.5a3.6 3.6 0 0 1-.6 0z"
+        />
+        <path
+          fill="#FE2C55"
+          transform="translate(1 -1)"
+          d="M16.5 7.6a3.6 3.6 0 0 1-2.8-3.2v-.3h-2.6v9.7c0 1.2-1 2.2-2.2 2.2a2.2 2.2 0 0 1-1.7-3.6 2.2 2.2 0 0 1 1.7-.8c.2 0 .5 0 .7.1v-2.6a4.7 4.7 0 0 0-.7 0 4.7 4.7 0 0 0-3.4 8 4.8 4.8 0 0 0 8.1-3.4v-5a6.1 6.1 0 0 0 3.5 1.1V7.5a3.6 3.6 0 0 1-.6 0z"
+        />
+        <path
+          fill="white"
+          d="M16.5 7.6a3.6 3.6 0 0 1-2.8-3.2v-.3h-2.6v9.7c0 1.2-1 2.2-2.2 2.2a2.2 2.2 0 0 1-1.7-3.6 2.2 2.2 0 0 1 1.7-.8c.2 0 .5 0 .7.1v-2.6a4.7 4.7 0 0 0-.7 0 4.7 4.7 0 0 0-3.4 8 4.8 4.8 0 0 0 8.1-3.4v-5a6.1 6.1 0 0 0 3.5 1.1V7.5a3.6 3.6 0 0 1-.6 0z"
+        />
+      </svg>
+    ),
+  },
+  {
+    name: 'Facebook',
+    href: 'https://www.facebook.com/mlacanienta',
+    svg: (
+      <svg viewBox="0 0 24 24" className="w-full h-full" aria-hidden="true">
+        <circle cx="12" cy="12" r="12" fill="#1877F2" />
+        <path
+          fill="white"
+          d="M13.5 8.5h1.7V6h-1.7c-1.66 0-3 1.34-3 3v1.5H8.5v2.5h2v6h2.5v-6h2l.5-2.5h-2.5V9c0-.28.22-.5.5-.5z"
+        />
+      </svg>
+    ),
+  },
+];
+
+function SocialIcons() {
+  return (
+    <div className="flex items-center gap-2">
+      {SOCIALS.map((s) => (
+        <a
+          key={s.name}
+          href={s.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={s.name}
+          className="w-6 h-6 hover:scale-110 transition-transform"
+        >
+          {s.svg}
+        </a>
+      ))}
+    </div>
+  );
+}
+
+const DEPLOYMENTS = [
+  { name: 'Vercel',     host: 'vercel.app',   url: 'https://miguel-ai.vercel.app/?v=2',     dot: 'bg-black' },
+  { name: 'Netlify',    host: 'netlify.app',  url: 'https://miguel-ai.netlify.app/?v=2',    dot: 'bg-teal-500' },
+  { name: 'Render',     host: 'onrender.com', url: 'https://miguel-ai.onrender.com/?v=2',   dot: 'bg-purple-500' },
+  { name: 'Cloudflare', host: 'pages.dev',    url: 'https://miguel-ai.pages.dev/?v=2',      dot: 'bg-orange-500' },
+];
+
+function MirrorNoteInline() {
+  const [hostname, setHostname] = useState('');
+  useEffect(() => { setHostname(window.location.hostname); }, []);
+  const others = DEPLOYMENTS.filter((d) => !hostname.includes(d.host));
+  if (others.length === 0) return null;
+  return (
+    <>
+      {' · Chat down? Try: '}
+      {others.map((d, i) => (
+        <span key={d.name}>
+          {i > 0 && ' · '}
+          <a href={d.url} className="text-blue-600 hover:underline">{d.name}</a>
+        </span>
+      ))}
+    </>
+  );
+}
+
+function HomeContent() {
+  const searchParams = useSearchParams();
+  const version = searchParams.get('v') === '1' ? 1 : 2;
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +124,7 @@ export default function Home() {
   const [selectedModel, setSelectedModel] = useState('groq'); // ADD THIS
   const [isAltAvatar, setIsAltAvatar] = useState(false);
   const [language, setLanguage] = useState('english'); // 'english' or 'german'
+  const [chatHighlight, setChatHighlight] = useState(false);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -28,7 +137,7 @@ export default function Home() {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-  
+
     // Basic input validation
     if (input.length > 500) {
       setMessages(prev => [...prev, {
@@ -37,7 +146,7 @@ export default function Home() {
       }]);
       return;
     }
-  
+
     // Detect suspicious patterns
     const suspiciousPatterns = [
       /ignore.*previous.*instructions?/i,
@@ -48,9 +157,9 @@ export default function Home() {
       /system.*prompt/i,
       /override.*settings?/i,
     ];
-  
+
     const hasSuspiciousContent = suspiciousPatterns.some(pattern => pattern.test(input));
-  
+
     if (hasSuspiciousContent) {
       setMessages(prev => [...prev, {
         role: 'assistant',
@@ -58,24 +167,24 @@ export default function Home() {
       }]);
       return;
     }
-  
+
     const userMessage = { role: 'user', content: input };
     setMessages([...messages, userMessage]);
     setInput('');
     setIsLoading(true);
-  
+
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           message: input,
           model: selectedModel
         }),
       });
-  
+
       const data = await response.json();
-      
+
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: data.message || data.error,
@@ -88,10 +197,10 @@ export default function Home() {
         content: 'Sorry, I encountered an error. Please try again.'
       }]);
     }
-    
+
     setIsLoading(false);
   };
-  
+
   const playVideo = (videoName) => {
     setCurrentVideo(getVideoPath(videoName, { isReal: isAltAvatar, language }));
   };
@@ -119,204 +228,230 @@ export default function Home() {
     <div className="min-h-screen bg-[#F0F4F8] text-[#1f1f1f] overflow-x-hidden">
       {/* Top Bar - Light Gemini Style */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
-          <a href="https://miguel-app.pages.dev/" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
-              M
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center bg-gray-100 rounded-full p-0.5">
+              <a
+                href="https://miguel-app.pages.dev/"
+                className="px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-900 shadow-sm"
+              >
+                Resume
+              </a>
+              <a
+                href="https://miguel-folio.pages.dev/"
+                className="px-3 py-1 rounded-full text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                Portfolio
+              </a>
             </div>
-            <span className="text-lg font-medium text-gray-800">MiguelAI</span>
-          </a>
-          <DeploymentSelector />
+            <span className="text-lg font-medium text-gray-800">Miguel Lacanienta</span>
+            <VersionToggle />
+          </div>
+          <SocialIcons />
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 pt-4 pb-3">
 
-        {/* Avatar Card */}
-        <div className="mb-6 bg-white rounded-2xl p-6 border border-gray-200 shadow-sm relative overflow-hidden">
-          <QRCode />
-          <div className="grid md:grid-cols-3 gap-6 items-end min-w-0">
-            <div className="md:col-span-1 flex justify-center">
-              <div className="aspect-[2/3] rounded-xl overflow-hidden w-40 sm:w-56 md:w-full">
-                <Avatar
-                  isSpeaking={isLoading}
-                  videoToPlay={currentVideo}
-                  onVideoEnd={handleVideoEnd}
-                  isAltAvatar={isAltAvatar}
-                  onAvatarSwitch={handleAvatarSwitch}
-                  language={language}
-                  onLanguageToggle={handleLanguageToggle}
-                />
-              </div>
+        {/* v2: Video Banner */}
+        {version === 2 && (
+          <div className="mb-4">
+            <Banner onChatHighlight={setChatHighlight} />
+          </div>
+        )}
+
+        {/* v1: Original Avatar Card */}
+        {version === 1 && (
+          <>
+            <div className="mb-4 px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg text-center">
+              <span className="text-xs text-amber-700 font-medium">You are viewing v1 (previous release)</span>
             </div>
-            <div className="md:col-span-2 flex flex-col h-full min-w-0">
-              <div className="flex-1 flex flex-col justify-center space-y-4">
-                <div className="text-center">
-                  <h2 className="text-2xl font-semibold text-gray-900">Miguel Lacanienta</h2>
-                  <p className="text-gray-600 mt-1">BS Computer Science • AI Specialization • Mapúa University</p>
-                </div>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  <button
-                    onClick={() => playVideo('objective')}
-                    className="px-4 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-medium border border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 cursor-pointer">
-                    Objective
-                  </button>
-                  <button
-                    onClick={() => playVideo('skills')}
-                    className="px-4 py-2 rounded-full bg-purple-50 text-purple-700 text-sm font-medium border border-purple-200 hover:bg-purple-100 hover:border-purple-300 transition-all duration-200 cursor-pointer">
-                    Skills
-                  </button>
-                  <button
-                    onClick={() => playVideo('certs')}
-                    className="px-4 py-2 rounded-full bg-green-50 text-green-700 text-sm font-medium border border-green-200 hover:bg-green-100 hover:border-green-300 transition-all duration-200 cursor-pointer">
-                    Certifications
-                  </button>
-                  <button
-                    onClick={() => playVideo('applied')}
-                    className="px-4 py-2 rounded-full bg-orange-50 text-orange-700 text-sm font-medium border border-orange-200 hover:bg-orange-100 hover:border-orange-300 transition-all duration-200 cursor-pointer">
-                    Applied Skills
-                  </button>
-                  <button
-                    onClick={() => playVideo('projects')}
-                    className="px-4 py-2 rounded-full bg-pink-50 text-pink-700 text-sm font-medium border border-pink-200 hover:bg-pink-100 hover:border-pink-300 transition-all duration-200 cursor-pointer">
-                    Projects
-                  </button>
-                </div>
-              </div>
-
-              {/* Powered By Ticker */}
-              <div className="bg-gray-800 rounded-lg overflow-hidden mt-4">
-                <div className="py-2 px-3">
-                  <div className="flex items-center justify-start gap-2 mb-1">
-                    <span className="text-white text-xs font-semibold">Powered by:</span>
+            <div className="mb-6 bg-white rounded-2xl p-6 border border-gray-200 shadow-sm relative overflow-hidden">
+              <QRCode />
+              <div className="grid md:grid-cols-3 gap-6 items-end min-w-0">
+                <div className="md:col-span-1 flex justify-center">
+                  <div className="aspect-[2/3] rounded-xl overflow-hidden w-40 sm:w-56 md:w-full">
+                    <Avatar
+                      isSpeaking={isLoading}
+                      videoToPlay={currentVideo}
+                      onVideoEnd={handleVideoEnd}
+                      isAltAvatar={isAltAvatar}
+                      onAvatarSwitch={handleAvatarSwitch}
+                      language={language}
+                      onLanguageToggle={handleLanguageToggle}
+                    />
                   </div>
-                  <div className="relative overflow-hidden">
-                    <div className="flex animate-scroll">
-                      {/* First complete set */}
-                      <div className="flex items-center gap-3 flex-shrink-0 pr-3">
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/chatgpt_icon.png`} alt="ChatGPT" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">ChatGPT</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/claude_icon.png`} alt="Claude" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Claude</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/llama_icon.png`} alt="Llama 3.3" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Llama 3.3</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/gemma_icon.png`} alt="Gemma 3" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Gemma 3</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/mistral_icon.png`} alt="Mistral Large" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Mistral Large</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/elevenlabs_icon.png`} alt="ElevenLabs" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">ElevenLabs</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/sora_icon.png`} alt="Sora 2" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Sora 2</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/capcut_icon.png`} alt="CapCut" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">CapCut</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/pippit_icon.png`} alt="Pippit" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Pippit</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/github_icon.png`} alt="GitHub" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">GitHub</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/vercel_icon.png`} alt="Vercel" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Vercel</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/netlify_icon.png`} alt="Netlify" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Netlify</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/render_icon.png`} alt="Render" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Render</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/cloudflare_icon.png`} alt="Cloudflare" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Cloudflare</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/kiro_icon.png`} alt="Kiro" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Kiro</span>
-                        </div>
+                </div>
+                <div className="md:col-span-2 flex flex-col h-full min-w-0">
+                  <div className="flex-1 flex flex-col justify-center space-y-4">
+                    <div className="text-center">
+                      <h2 className="text-2xl font-semibold text-gray-900">Miguel Lacanienta</h2>
+                      <p className="text-gray-600 mt-1">BS Computer Science • AI Specialization • Mapúa University</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      <button
+                        onClick={() => playVideo('objective')}
+                        className="px-4 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-medium border border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 cursor-pointer">
+                        Objective
+                      </button>
+                      <button
+                        onClick={() => playVideo('skills')}
+                        className="px-4 py-2 rounded-full bg-purple-50 text-purple-700 text-sm font-medium border border-purple-200 hover:bg-purple-100 hover:border-purple-300 transition-all duration-200 cursor-pointer">
+                        Skills
+                      </button>
+                      <button
+                        onClick={() => playVideo('certs')}
+                        className="px-4 py-2 rounded-full bg-green-50 text-green-700 text-sm font-medium border border-green-200 hover:bg-green-100 hover:border-green-300 transition-all duration-200 cursor-pointer">
+                        Certifications
+                      </button>
+                      <button
+                        onClick={() => playVideo('applied')}
+                        className="px-4 py-2 rounded-full bg-orange-50 text-orange-700 text-sm font-medium border border-orange-200 hover:bg-orange-100 hover:border-orange-300 transition-all duration-200 cursor-pointer">
+                        Applied Skills
+                      </button>
+                      <button
+                        onClick={() => playVideo('projects')}
+                        className="px-4 py-2 rounded-full bg-pink-50 text-pink-700 text-sm font-medium border border-pink-200 hover:bg-pink-100 hover:border-pink-300 transition-all duration-200 cursor-pointer">
+                        Projects
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Powered By Ticker */}
+                  <div className="bg-gray-800 rounded-lg overflow-hidden mt-4">
+                    <div className="py-2 px-3">
+                      <div className="flex items-center justify-start gap-2 mb-1">
+                        <span className="text-white text-xs font-semibold">Powered by:</span>
                       </div>
-                      {/* Duplicate set for seamless loop */}
-                      <div className="flex items-center gap-3 flex-shrink-0 pr-3">
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/chatgpt_icon.png`} alt="ChatGPT" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">ChatGPT</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/claude_icon.png`} alt="Claude" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Claude</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/llama_icon.png`} alt="Llama 3.3" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Llama 3.3</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/gemma_icon.png`} alt="Gemma 3" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Gemma 3</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/mistral_icon.png`} alt="Mistral Large" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Mistral Large</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/elevenlabs_icon.png`} alt="ElevenLabs" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">ElevenLabs</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/sora_icon.png`} alt="Sora 2" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Sora 2</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/capcut_icon.png`} alt="CapCut" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">CapCut</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/pippit_icon.png`} alt="Pippit" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Pippit</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/github_icon.png`} alt="GitHub" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">GitHub</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/vercel_icon.png`} alt="Vercel" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Vercel</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/netlify_icon.png`} alt="Netlify" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Netlify</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/render_icon.png`} alt="Render" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Render</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/cloudflare_icon.png`} alt="Cloudflare" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Cloudflare</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
-                          <img src={`${ASSET_CONFIG.basePath}/kiro_icon.png`} alt="Kiro" className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-white text-xs font-medium whitespace-nowrap">Kiro</span>
+                      <div className="relative overflow-hidden">
+                        <div className="flex animate-scroll">
+                          {/* First complete set */}
+                          <div className="flex items-center gap-3 flex-shrink-0 pr-3">
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/chatgpt_icon.png`} alt="ChatGPT" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">ChatGPT</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/claude_icon.png`} alt="Claude" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Claude</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/llama_icon.png`} alt="Llama 3.3" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Llama 3.3</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/gemma_icon.png`} alt="Gemma 3" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Gemma 3</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/mistral_icon.png`} alt="Mistral Large" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Mistral Large</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/elevenlabs_icon.png`} alt="ElevenLabs" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">ElevenLabs</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/sora_icon.png`} alt="Sora 2" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Sora 2</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/capcut_icon.png`} alt="CapCut" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">CapCut</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/pippit_icon.png`} alt="Pippit" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Pippit</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/github_icon.png`} alt="GitHub" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">GitHub</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/vercel_icon.png`} alt="Vercel" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Vercel</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/netlify_icon.png`} alt="Netlify" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Netlify</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/render_icon.png`} alt="Render" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Render</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/cloudflare_icon.png`} alt="Cloudflare" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Cloudflare</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/kiro_icon.png`} alt="Kiro" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Kiro</span>
+                            </div>
+                          </div>
+                          {/* Duplicate set for seamless loop */}
+                          <div className="flex items-center gap-3 flex-shrink-0 pr-3">
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/chatgpt_icon.png`} alt="ChatGPT" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">ChatGPT</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/claude_icon.png`} alt="Claude" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Claude</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/llama_icon.png`} alt="Llama 3.3" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Llama 3.3</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/gemma_icon.png`} alt="Gemma 3" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Gemma 3</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/mistral_icon.png`} alt="Mistral Large" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Mistral Large</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/elevenlabs_icon.png`} alt="ElevenLabs" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">ElevenLabs</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/sora_icon.png`} alt="Sora 2" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Sora 2</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/capcut_icon.png`} alt="CapCut" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">CapCut</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/pippit_icon.png`} alt="Pippit" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Pippit</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/github_icon.png`} alt="GitHub" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">GitHub</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/vercel_icon.png`} alt="Vercel" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Vercel</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/netlify_icon.png`} alt="Netlify" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Netlify</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/render_icon.png`} alt="Render" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Render</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/cloudflare_icon.png`} alt="Cloudflare" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Cloudflare</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 rounded-full min-w-fit">
+                              <img src={`${ASSET_CONFIG.basePath}/kiro_icon.png`} alt="Kiro" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="text-white text-xs font-medium whitespace-nowrap">Kiro</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -324,24 +459,24 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          </>
+        )}
 
         {/* Chat Area */}
         <div className="space-y-6">
           {messages.length === 0 ? (
-            <div className="text-center py-6">
-              <h3 className="text-4xl font-medium text-gray-900 mb-4">Hi, I'm Miguel 👋</h3>
-              <p className="text-gray-600 text-lg mb-8">What would you like to know?</p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-3xl mx-auto">
+            <div className="text-center mt-4">
+              <h3 className="text-4xl font-medium text-gray-900 mb-1">Hi, I'm Miguel 👋</h3>
+              <p className="text-gray-600 text-lg mb-2">What would you like to know?</p>
+
+              <div className="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto">
                 {quickPrompts.map((prompt, i) => (
                   <button
                     key={i}
                     onClick={() => setInput(prompt)}
-                    className="text-left p-4 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 transition-all duration-200 shadow-sm"
+                    className="px-3 py-1.5 rounded-full bg-white hover:bg-gray-50 border border-gray-200 transition-all duration-200 shadow-sm text-xs text-gray-700 whitespace-nowrap"
                   >
-                    <p className="text-sm text-gray-700">{prompt}</p>
+                    {prompt}
                   </button>
                 ))}
               </div>
@@ -386,7 +521,7 @@ export default function Home() {
                         {msg.content}
                       </ReactMarkdown>
                     </div>
-                    
+
                     {/* Model Indicator - Only for assistant messages */}
                     {msg.role === 'assistant' && msg.model && (
                       <div className="mt-3">
@@ -429,7 +564,11 @@ export default function Home() {
         {/* Input Box - Fixed at Bottom */}
         <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#F0F4F8] via-[#F0F4F8] to-transparent p-4">
           <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-3xl border border-gray-300 shadow-lg">
+            <div className={`bg-white rounded-3xl border shadow-lg transition-all duration-300 ${
+              chatHighlight
+                ? 'border-blue-400 shadow-[0_0_24px_rgba(96,165,250,0.55)] ring-2 ring-blue-300/60 scale-[1.01]'
+                : 'border-gray-300'
+            }`}>
               <div className="flex items-end gap-2 p-3">
                 <textarea
                   value={input}
@@ -445,13 +584,13 @@ export default function Home() {
                   className="flex-1 bg-transparent px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none resize-none max-h-32"
                   disabled={isLoading}
                 />
-                    
+
                 {/* Model Selector */}
-                <ModelSelector 
+                <ModelSelector
                   selectedModel={selectedModel}
                   onModelChange={setSelectedModel}
                 />
-                        
+
                 {/* Send Button */}
                 <button
                   onClick={sendMessage}
@@ -464,7 +603,9 @@ export default function Home() {
                 </button>
               </div>
             </div>
-            <p className="text-center text-xs text-gray-500 mt-2">MiguelAI can make mistakes. Verify important information.</p>
+            <p className="text-center text-xs text-gray-500 mt-2">
+              MiguelAI can make mistakes. Verify important information.<MirrorNoteInline />
+            </p>
           </div>
         </div>
 
@@ -472,5 +613,13 @@ export default function Home() {
         <div className="h-32"></div>
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#F0F4F8]" />}>
+      <HomeContent />
+    </Suspense>
   );
 }
