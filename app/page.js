@@ -90,7 +90,7 @@ function SocialIcons() {
 
 const DEPLOYMENTS = [
   { name: 'Vercel',     host: 'vercel.app',   url: 'https://miguel-ai.vercel.app/?v=2',     dot: 'bg-black' },
-  { name: 'Netlify',    host: 'netlify.app',  url: 'https://miguel-ai.netlify.app/?v=2',    dot: 'bg-teal-500' },
+  { name: 'Netlify',    host: 'netlify.app',  url: 'https://miguel-ai-2.netlify.app/?v=2',    dot: 'bg-teal-500' },
   { name: 'Render',     host: 'onrender.com', url: 'https://miguel-ai.onrender.com/?v=2',   dot: 'bg-purple-500' },
   { name: 'Cloudflare', host: 'pages.dev',    url: 'https://miguel-ai.pages.dev/?v=2',      dot: 'bg-orange-500' },
 ];
