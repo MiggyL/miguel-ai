@@ -15,7 +15,11 @@
 import { NextResponse } from 'next/server';
 
 import { hasCoverLetterInjection } from '../../lib/prompt-guards.js';
-import { buildSystemPrompt, rankProjects } from '../../lib/profile-context.js';
+import {
+  buildSystemPrompt,
+  rankProjects,
+  appendSignature,
+} from '../../lib/profile-context.js';
 import {
   buildCoverLetterUserPrompt,
   buildRefinementUserPrompt,
@@ -134,6 +138,7 @@ export async function POST(req) {
     if (model === 'groq') letter = await callGroq(systemPrompt, userPrompt);
     else if (model === 'gemini') letter = await callGemini(systemPrompt, userPrompt);
     else letter = await callMistral(systemPrompt, userPrompt);
+    letter = appendSignature(letter);
     return NextResponse.json({ letter, model, pickedProjects });
   } catch (err) {
     console.error('cover-letter error', err);

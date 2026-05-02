@@ -6,7 +6,7 @@
 // Keep this in lockstep with the portfolio data when projects change.
 
 const PROFILE_BASICS = {
-  name: 'Miguel Lacanienta',
+  name: 'Miguel M. Lacanienta',
   headline:
     'Computer Science graduate (AI specialization) — Mapúa University 2021-2025',
   objective:
@@ -226,6 +226,40 @@ const PROJECTS = [
   },
 ];
 
+// Fixed sign-off block appended to every generated letter, server-side.
+// We don't trust the LLM to reproduce certification names verbatim.
+const SIGNATURE_BLOCK = `Sincerely,
+
+Miguel M. Lacanienta
+Microsoft Certified: Azure AI, Azure Administration, Power Platform
+Oracle Certified: Cloud Architecture, Multicloud Architecture, AI & Generative AI, Sunbird Ed
+Programming & Graph Certified: Python, JavaScript, Neo4j (Graph Data Science, Professional)
+
+https://miguel-app.pages.dev/`;
+
+// Append the canonical signature block to a letter body. Strips any
+// trailing sign-off the model may have added on its own ("Sincerely, X",
+// "Best regards", "Yours sincerely", etc.) so we don't end up with two.
+export function appendSignature(letterBody) {
+  if (!letterBody) return letterBody;
+  let body = letterBody.trim();
+  // Strip from the last "Sincerely" / "Best" / "Yours" line onward, if any.
+  const lines = body.split('\n');
+  let cutAt = -1;
+  for (let i = lines.length - 1; i >= 0 && i >= lines.length - 6; i--) {
+    if (
+      /^\s*(sincerely|best regards|best,|yours sincerely|yours truly|kind regards|warm regards|regards)\b/i.test(
+        lines[i]
+      )
+    ) {
+      cutAt = i;
+      break;
+    }
+  }
+  if (cutAt >= 0) body = lines.slice(0, cutAt).join('\n').trim();
+  return `${body}\n\n${SIGNATURE_BLOCK}`;
+}
+
 // Score each project by simple keyword overlap with the JD text. Returns
 // the top N projects, retaining their original ordering for ties.
 function rankProjects(jdText, n = 3) {
@@ -296,18 +330,18 @@ MOST-RELEVANT PROJECTS (pre-selected for the JD):
 ${projectBlocks}
 
 WRITING RULES — STANDARD LETTER LENGTH, NO PADDING
-- Address: "Dear ${PROFILE_BASICS.name === 'Miguel Lacanienta' ? '<recruiter name>' : ''}" if a name is given, else "Dear Hiring Manager".
+- Address: "Dear <recruiter name>" if a name is given, else "Dear Hiring Manager".
 - HARD LIMIT: 200–260 words. Treat the upper bound as a ceiling, not a target. Shorter is better.
 - Exactly THREE short paragraphs:
     1. Hook (≤2 sentences): one specific reason this company / role caught the writer's eye. Never "I am writing to apply".
     2. Proof (≤4 sentences): one or at most two of the pre-selected projects, each with one concrete outcome / metric from the bullets, tied to a JD requirement.
-    3. Close (≤2 sentences): a forward-looking line plus a sign-off.
+    3. Close (≤2 sentences): a forward-looking line. Do NOT include a sign-off, name, or signature — those are appended automatically.
 - BANNED phrases: "I am confident that", "I look forward to", "I believe my", "as evident in my", "long-time admirer", "thrilled", "perfect fit", "passion for".
 - No bullet lists. No markdown headings. No section labels. Plain prose only.
-- Final line MUST be exactly: "Sincerely, ${PROFILE_BASICS.name}" on its own line, preceded by one blank line.
+- Stop after the closing paragraph. Do NOT write "Sincerely", "Best", "Regards", a name, or any signature line — the system appends the canonical signature block.
 - ${toneLine}
 - ${langLine}
-- Output ONLY the letter body. No preamble, no commentary, no JSON, no explanation of choices.`;
+- Output ONLY the body paragraphs. No preamble, no commentary, no JSON, no explanation of choices.`;
 }
 
 export { PROFILE_BASICS, PROJECTS, rankProjects };
