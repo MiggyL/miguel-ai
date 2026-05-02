@@ -43,7 +43,7 @@ const EXAMPLE = {
   recruiterName: 'Alex',
 };
 
-const MIGUEL_EMAIL = 'jeremias.lacanienta@cambridge.org';
+const MIGUEL_EMAIL = 'mmlacanienta@gmail.com';
 
 export default function CoverLetterPage() {
   const [form, setForm] = useState({
@@ -63,6 +63,7 @@ export default function CoverLetterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [voiceOpen, setVoiceOpen] = useState(false);
   const resultRef = useRef(null);
 
   const update = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -212,23 +213,22 @@ export default function CoverLetterPage() {
           </p>
         </header>
 
-        {/* Step 1 — The role */}
+        {/* Single form card */}
         <Card>
-          <CardHeader
-            step="1"
-            title="The role"
-            right={
-              <button
-                type="button"
-                onClick={fillExample}
-                className="text-xs text-violet-600 hover:text-violet-700 font-medium"
-              >
-                Fill with example →
-              </button>
-            }
-          />
-          <form onSubmit={generate} className="space-y-5">
-            <div className="grid sm:grid-cols-2 gap-4">
+          <div className="flex items-baseline justify-between mb-5">
+            <h2 className="text-base font-semibold text-slate-900">
+              Tell me about your role
+            </h2>
+            <button
+              type="button"
+              onClick={fillExample}
+              className="text-xs text-violet-600 hover:text-violet-700 font-medium"
+            >
+              Fill with example →
+            </button>
+          </div>
+          <form onSubmit={generate} className="space-y-4">
+            <div className="grid sm:grid-cols-2 gap-3">
               <Input
                 label="Company"
                 required
@@ -248,109 +248,138 @@ export default function CoverLetterPage() {
             </div>
             <Textarea
               label="Job description"
-              hint="Paste the JD or key requirements — this is what makes the letter specific."
               value={form.jd}
               onChange={update('jd')}
-              placeholder="We're looking for…"
+              placeholder="Paste the JD here — it's what makes the letter specific."
               maxLength={6000}
               rows={5}
-            />
-            <Input
-              label="Recruiter name"
-              optional
-              value={form.recruiterName}
-              onChange={update('recruiterName')}
-              placeholder="Alex"
-              maxLength={120}
             />
           </form>
         </Card>
 
-        {/* Step 2 — The voice */}
-        <div className="mt-6">
-          <Card>
-            <CardHeader step="2" title="The voice" />
-            <div className="space-y-6">
-              {/* Tone chips */}
+        {/* Voice strip — collapsed by default. Click to customize. */}
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={() => setVoiceOpen((v) => !v)}
+            className="w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-white border border-slate-200/80 hover:border-slate-300 transition-colors text-left"
+          >
+            <div className="flex items-center gap-2.5 text-sm text-slate-600 min-w-0">
+              <span className="text-slate-400 text-xs uppercase tracking-wider font-semibold shrink-0">
+                Voice
+              </span>
+              <span className="flex items-center gap-1.5 text-slate-700 font-medium truncate">
+                <span>{TONES.find((t) => t.id === form.tone)?.emoji}</span>
+                {TONES.find((t) => t.id === form.tone)?.label}
+                <span className="text-slate-300">·</span>
+                {form.language === 'EN' ? 'English' : 'Deutsch'}
+                <span className="text-slate-300">·</span>
+                <span
+                  className="inline-block w-1.5 h-1.5 rounded-full shrink-0"
+                  style={{
+                    backgroundColor:
+                      MODELS.find((m) => m.id === form.model)?.dot,
+                  }}
+                />
+                {MODELS.find((m) => m.id === form.model)?.name}
+              </span>
+            </div>
+            <span className="text-xs text-violet-600 font-medium shrink-0 flex items-center gap-1">
+              {voiceOpen ? 'Done' : 'Customize'}
+              <Chevron open={voiceOpen} />
+            </span>
+          </button>
+
+          {voiceOpen && (
+            <div className="mt-2 p-5 sm:p-6 rounded-xl bg-white border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.08)] space-y-5">
               <div>
                 <Label>Tone</Label>
-                <div className="grid grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-3 gap-2">
                   {TONES.map((t) => (
                     <button
                       key={t.id}
                       type="button"
                       onClick={() => set('tone', t.id)}
-                      className={`group relative px-3 py-3 rounded-xl border text-sm font-medium transition-all ${
+                      className={`px-2 py-2 rounded-lg border text-sm font-medium transition-all ${
                         form.tone === t.id
                           ? 'border-violet-500 bg-violet-50 text-violet-900 ring-2 ring-violet-500/20'
                           : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                       }`}
                     >
-                      <span className="block text-lg mb-0.5">{t.emoji}</span>
-                      <span className="block text-[13px]">{t.label}</span>
+                      <span className="mr-1">{t.emoji}</span>
+                      <span className="text-[13px]">{t.label}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Language pills */}
-              <div>
-                <Label>Language</Label>
-                <div className="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200">
-                  {[
-                    { id: 'EN', label: 'English' },
-                    { id: 'DE', label: 'Deutsch' },
-                  ].map((l) => (
-                    <button
-                      key={l.id}
-                      type="button"
-                      onClick={() => set('language', l.id)}
-                      className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                        form.language === l.id
-                          ? 'bg-white text-slate-900 shadow-sm'
-                          : 'text-slate-500 hover:text-slate-700'
-                      }`}
-                    >
-                      {l.label}
-                    </button>
-                  ))}
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+                <div className="flex items-center gap-3">
+                  <Label inline>Language</Label>
+                  <div className="inline-flex p-0.5 rounded-lg bg-slate-100 border border-slate-200">
+                    {[
+                      { id: 'EN', label: 'English' },
+                      { id: 'DE', label: 'Deutsch' },
+                    ].map((l) => (
+                      <button
+                        key={l.id}
+                        type="button"
+                        onClick={() => set('language', l.id)}
+                        className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                          form.language === l.id
+                            ? 'bg-white text-slate-900 shadow-sm'
+                            : 'text-slate-500 hover:text-slate-700'
+                        }`}
+                      >
+                        {l.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Label inline>Recruiter</Label>
+                  <input
+                    type="text"
+                    value={form.recruiterName}
+                    onChange={update('recruiterName')}
+                    placeholder="Optional"
+                    maxLength={120}
+                    className="px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-violet-400 focus:ring-2 focus:ring-violet-500/20 w-32"
+                  />
                 </div>
               </div>
 
-              {/* Model tiles */}
               <div>
                 <Label>Model</Label>
-                <div className="grid sm:grid-cols-3 gap-2.5">
+                <div className="grid sm:grid-cols-3 gap-2">
                   {MODELS.map((m) => (
                     <button
                       key={m.id}
                       type="button"
                       onClick={() => set('model', m.id)}
-                      className={`group relative text-left p-3.5 rounded-xl border transition-all ${
+                      className={`text-left p-2.5 rounded-lg border transition-all ${
                         form.model === m.id
                           ? 'border-violet-500 bg-violet-50 ring-2 ring-violet-500/20'
                           : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
                       }`}
                     >
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-1.5 mb-0.5">
                         <span
-                          className="w-2 h-2 rounded-full shrink-0"
+                          className="w-1.5 h-1.5 rounded-full shrink-0"
                           style={{ backgroundColor: m.dot }}
                         />
-                        <span className="font-medium text-slate-900 text-sm">
+                        <span className="font-medium text-slate-900 text-[13px]">
                           {m.name}
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-500 mb-1">{m.sub}</div>
-                      <div className="text-[11px] text-slate-400 leading-snug">
-                        {m.blurb}
-                      </div>
+                      <div className="text-[10.5px] text-slate-500">{m.blurb}</div>
                     </button>
                   ))}
                 </div>
               </div>
             </div>
-          </Card>
+          )}
         </div>
 
         {/* CTA */}
@@ -567,11 +596,34 @@ function CardHeader({ step, title, right }) {
   );
 }
 
-function Label({ children }) {
+function Label({ children, inline }) {
   return (
-    <span className="block text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-2.5">
+    <span
+      className={`text-[11px] uppercase tracking-wider text-slate-500 font-semibold ${
+        inline ? 'inline' : 'block mb-2.5'
+      }`}
+    >
       {children}
     </span>
+  );
+}
+
+function Chevron({ open }) {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+      aria-hidden="true"
+    >
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
   );
 }
 
