@@ -2,9 +2,22 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import Banner from '../components/Banner';
+import FloatingControls from '../components/FloatingControls';
 
 /* ----- Configuration ----- */
+
+// All media is served from miguel-app.pages.dev's CDN — same as Banner.js
+// uses today. Hardcoded so this page is portable across deployments
+// (static export sites can drop it in without their own asset config).
+const V2_BASE = 'https://miguel-app.pages.dev/v2';
+
+// API endpoint for the LLM. Static-export deployments can't host the
+// route themselves, so they POST to miguel-ai's Vercel deployment which
+// has CORS enabled. On miguel-ai itself NEXT_PUBLIC_COVER_LETTER_API
+// can stay unset → uses the relative path.
+const API_URL =
+  (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_COVER_LETTER_API) ||
+  'https://miguel-ai.vercel.app/api/cover-letter';
 
 const MODELS = [
   {
@@ -248,7 +261,20 @@ export default function CoverLetterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const audioRef = useRef(null);
   const resultRef = useRef(null);
+
+  const toggleAudio = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (isMuted) {
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+    }
+    setIsMuted(!isMuted);
+  };
 
   const update = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -280,7 +306,7 @@ export default function CoverLetterPage() {
     setLetter('');
     setPicked([]);
     try {
-      const r = await fetch('/api/cover-letter', {
+      const r = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode: 'generate', tone: 'professional', ...form }),
@@ -360,107 +386,112 @@ export default function CoverLetterPage() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 pt-4 pb-24">
-        {/* Portfolio v2 Banner — bg video, idle avatar, EN|DE flag, mute,
-            CV. The form lives INSIDE the banner where the section buttons
-            normally go, via Banner's centerSlot prop. */}
-        <Banner
-          onLanguageChange={(lang) => set('language', lang)}
-          centerSlot={() => (
-            <div className="absolute inset-0 z-[6] flex items-center justify-center px-4 sm:px-8 pt-12 pb-16 sm:pt-14 sm:pb-12 pointer-events-none">
-              <div className="w-full max-w-md rounded-2xl bg-white/95 backdrop-blur-md shadow-xl border border-white/40 p-4 sm:p-5 pointer-events-auto">
-                <div className="flex items-center justify-between gap-3 mb-3">
-                  <h2 className="text-sm font-semibold text-slate-900">
-                    Tell me about your role
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={fillExample}
-                    className="text-xs text-violet-600 hover:text-violet-700 font-medium shrink-0"
-                  >
-                    Fill with example →
-                  </button>
-                </div>
-                <form onSubmit={generate} className="space-y-2.5">
-                  <div className="grid sm:grid-cols-2 gap-2.5">
-                    <Input
-                      label="Company"
-                      required
-                      value={form.company}
-                      onChange={update('company')}
-                      placeholder="ACME Corp"
-                      maxLength={200}
-                    />
-                    <Input
-                      label="Role"
-                      required
-                      value={form.role}
-                      onChange={update('role')}
-                      placeholder="Senior Software Engineer"
-                      maxLength={200}
-                    />
-                  </div>
-                  <Input
-                    label="Recruiter name"
-                    optional
-                    value={form.recruiterName}
-                    onChange={update('recruiterName')}
-                    placeholder="Hiring Manager"
-                    maxLength={120}
-                  />
-                  <Textarea
-                    label="Job description"
-                    value={form.jd}
-                    onChange={update('jd')}
-                    placeholder="Paste the JD — makes the letter specific."
-                    maxLength={6000}
-                    rows={3}
-                  />
-                </form>
-
-                {/* Split-button CTA — gradient Draft on left, model picker on right */}
-                <div
-                  className={`group mt-3 relative flex items-stretch rounded-xl transition-all ${
-                    canGenerate
-                      ? 'shadow-md shadow-violet-500/25 hover:shadow-lg'
-                      : 'shadow-sm'
-                  } ${!canGenerate ? 'opacity-60' : ''}`}
-                  style={{
-                    background:
-                      'linear-gradient(120deg, #7c3aed 0%, #6366f1 50%, #2563eb 100%)',
-                  }}
+        {/* Self-contained banner — bg video + idle avatar + EN|DE + mute +
+            CV — with the form overlaid in the centre. Same shape and
+            controls as the Portfolio Banner, but without depending on
+            Banner.js so this page can be dropped into any of the four
+            Miguel deployments. */}
+        <CoverLetterBanner
+          language={form.language}
+          onLanguageChange={(v) => set('language', v)}
+          isMuted={isMuted}
+          onToggleMute={toggleAudio}
+          audioRef={audioRef}
+        >
+          <div className="absolute inset-0 z-[6] flex items-center justify-center px-4 sm:px-8 pt-12 pb-16 sm:pt-14 sm:pb-12 pointer-events-none">
+            <div className="w-full max-w-md rounded-2xl bg-white/95 backdrop-blur-md shadow-xl border border-white/40 p-4 sm:p-5 pointer-events-auto">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <h2 className="text-sm font-semibold text-slate-900">
+                  Tell me about your role
+                </h2>
+                <button
+                  type="button"
+                  onClick={fillExample}
+                  className="text-xs text-violet-600 hover:text-violet-700 font-medium shrink-0"
                 >
-                  <button
-                    type="button"
-                    onClick={generate}
-                    disabled={!canGenerate}
-                    className="relative flex-1 overflow-hidden rounded-l-xl px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed transition-transform hover:bg-white/5 active:scale-[0.99]"
-                  >
-                    <span className="relative z-10 flex items-center justify-center gap-2">
-                      {loading ? (
-                        <>
-                          <Spinner /> Drafting…
-                        </>
-                      ) : (
-                        <>
-                          <SparkleIcon />{' '}
-                          {letter ? 'Regenerate' : 'Draft the letter'}
-                        </>
-                      )}
-                    </span>
-                    {canGenerate && (
-                      <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                    )}
-                  </button>
-                  <div className="w-px bg-white/25 my-2" />
-                  <InlineModelMenu
-                    value={form.model}
-                    onChange={(m) => set('model', m)}
+                  Fill with example →
+                </button>
+              </div>
+              <form onSubmit={generate} className="space-y-2.5">
+                <div className="grid sm:grid-cols-2 gap-2.5">
+                  <Input
+                    label="Company"
+                    required
+                    value={form.company}
+                    onChange={update('company')}
+                    placeholder="ACME Corp"
+                    maxLength={200}
+                  />
+                  <Input
+                    label="Role"
+                    required
+                    value={form.role}
+                    onChange={update('role')}
+                    placeholder="Senior Software Engineer"
+                    maxLength={200}
                   />
                 </div>
+                <Input
+                  label="Recruiter name"
+                  optional
+                  value={form.recruiterName}
+                  onChange={update('recruiterName')}
+                  placeholder="Hiring Manager"
+                  maxLength={120}
+                />
+                <Textarea
+                  label="Job description"
+                  value={form.jd}
+                  onChange={update('jd')}
+                  placeholder="Paste the JD — makes the letter specific."
+                  maxLength={6000}
+                  rows={3}
+                />
+              </form>
+
+              {/* Split-button CTA — gradient Draft on left, model picker on right */}
+              <div
+                className={`group mt-3 relative flex items-stretch rounded-xl transition-all ${
+                  canGenerate
+                    ? 'shadow-md shadow-violet-500/25 hover:shadow-lg'
+                    : 'shadow-sm'
+                } ${!canGenerate ? 'opacity-60' : ''}`}
+                style={{
+                  background:
+                    'linear-gradient(120deg, #7c3aed 0%, #6366f1 50%, #2563eb 100%)',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={generate}
+                  disabled={!canGenerate}
+                  className="relative flex-1 overflow-hidden rounded-l-xl px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed transition-transform hover:bg-white/5 active:scale-[0.99]"
+                >
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    {loading ? (
+                      <>
+                        <Spinner /> Drafting…
+                      </>
+                    ) : (
+                      <>
+                        <SparkleIcon />{' '}
+                        {letter ? 'Regenerate' : 'Draft the letter'}
+                      </>
+                    )}
+                  </span>
+                  {canGenerate && (
+                    <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                  )}
+                </button>
+                <div className="w-px bg-white/25 my-2" />
+                <InlineModelMenu
+                  value={form.model}
+                  onChange={(m) => set('model', m)}
+                />
               </div>
             </div>
-          )}
-        />
+          </div>
+        </CoverLetterBanner>
 
         {error && (
           <p className="mt-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
@@ -548,8 +579,19 @@ export default function CoverLetterPage() {
         </p>
       </main>
 
-      {/* Banner internally renders its own <FloatingControls> — no need
-          to render another one here. */}
+      <FloatingControls
+        language={form.language}
+        onLanguageChange={(v) => set('language', v)}
+        isMuted={isMuted}
+        onToggleMute={toggleAudio}
+        onPlayAbout={() => {
+          /* Click the avatar in the banner to play the about intro */
+        }}
+        onPlayGame={() => {
+          window.open(RESUME_URL, '_blank', 'noopener,noreferrer');
+        }}
+        cvHref={CV_URL}
+      />
     </div>
   );
 }
@@ -749,6 +791,111 @@ function InlineModelMenu({ value, onChange }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+/* ----- Self-contained cover-letter banner (no Banner.js dependency) ----- */
+
+function CoverLetterBanner({
+  language,
+  onLanguageChange,
+  isMuted,
+  onToggleMute,
+  audioRef,
+  children,
+}) {
+  return (
+    <div className="relative bg-black rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <audio ref={audioRef} loop src={`${V2_BASE}/ambient.mp3`} />
+      <div className="w-full aspect-[4/5] md:aspect-[1173/640]">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+          src={`${V2_BASE}/bg.mp4`}
+        />
+      </div>
+
+      {/* Idle avatar overlay — bottom-right, always playing */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute bottom-0 right-0 object-cover rounded-br-2xl h-[45%] md:h-[35%]"
+        style={{ aspectRatio: '1/1', zIndex: 5 }}
+        src={`${V2_BASE}/idle.mp4`}
+      />
+
+      {/* Top-left: EN|DE toggle */}
+      <div className="absolute top-3 left-3 z-[6] flex items-center gap-2">
+        <div className="flex items-center gap-1 px-2 py-0.5 bg-white/10 backdrop-blur-sm border border-white/15 rounded-md opacity-50 hover:opacity-100 transition-all">
+          <button
+            type="button"
+            onClick={() => onLanguageChange('EN')}
+            className={`text-[11px] sm:text-xs font-medium tracking-wide cursor-pointer transition-colors ${
+              language === 'EN'
+                ? 'text-white'
+                : 'text-white/40 hover:text-white/70'
+            }`}
+          >
+            EN
+          </button>
+          <span className="text-white/30 text-[11px]">|</span>
+          <button
+            type="button"
+            onClick={() => onLanguageChange('DE')}
+            className={`text-[11px] sm:text-xs font-medium tracking-wide cursor-pointer transition-colors ${
+              language === 'DE'
+                ? 'text-white'
+                : 'text-white/40 hover:text-white/70'
+            }`}
+          >
+            DE
+          </button>
+        </div>
+      </div>
+
+      {/* Top-right: mute toggle */}
+      <button
+        type="button"
+        onClick={onToggleMute}
+        className="absolute top-3 right-3 z-10 opacity-50 hover:opacity-80 transition-opacity cursor-pointer"
+        aria-label={isMuted ? 'Unmute background music' : 'Mute background music'}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="white"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M9 18V5l12-2v13" />
+          <circle cx="6" cy="18" r="3" />
+          <circle cx="18" cy="16" r="3" />
+          {isMuted && <line x1="3" y1="3" x2="21" y2="21" />}
+        </svg>
+      </button>
+
+      {/* Bottom-left: CV link */}
+      <a
+        href={CV_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute bottom-3 left-3 z-[6] px-2 py-0.5 bg-white/10 backdrop-blur-sm border border-white/15 rounded-md text-white/70 text-[11px] sm:text-xs font-medium tracking-wide hover:text-white hover:bg-white/20 transition-all cursor-pointer opacity-50 hover:opacity-100 no-underline"
+      >
+        CV
+      </a>
+
+      {/* Form (or any children) overlaid in the centre */}
+      {children}
     </div>
   );
 }

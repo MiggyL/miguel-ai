@@ -34,8 +34,28 @@ const FIELD_LIMITS = {
 const REFUSAL =
   "I'm here to draft a cover letter from Miguel. Please share company, role, and a job description.";
 
+// CORS — the static-export deployments (miguel-app.pages.dev,
+// miguel-folio.pages.dev, miguel-ai.pages.dev) ship the cover-letter page
+// but call this Vercel-hosted API cross-origin. Public read-only endpoint;
+// no credentials, so '*' is acceptable.
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Max-Age': '86400',
+};
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: CORS_HEADERS });
+}
+
+function withCors(res) {
+  for (const [k, v] of Object.entries(CORS_HEADERS)) res.headers.set(k, v);
+  return res;
+}
+
 function bad(status, error) {
-  return NextResponse.json({ error }, { status });
+  return withCors(NextResponse.json({ error }, { status }));
 }
 
 function trimAll(obj) {
@@ -70,9 +90,11 @@ export async function POST(req) {
   const ip = getClientIp(req);
   const rl = checkRateLimit(ip);
   if (!rl.allowed) {
-    return NextResponse.json(
-      { error: 'Rate limit exceeded. Try again later.', retryAfterSec: rl.retryAfterSec },
-      { status: 429, headers: { 'Retry-After': String(rl.retryAfterSec) } }
+    return withCors(
+      NextResponse.json(
+        { error: 'Rate limit exceeded. Try again later.', retryAfterSec: rl.retryAfterSec },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfterSec) } }
+      )
     );
   }
 
@@ -87,7 +109,9 @@ export async function POST(req) {
   if (!company || !role) return bad(400, 'company and role are required');
 
   if (anyInjection([company, role, jd, recruiterName, hook])) {
-    return NextResponse.json({ letter: REFUSAL, pickedProjects: [] });
+    return withCors(
+      NextResponse.json({ letter: REFUSAL, pickedProjects: [] })
+    );
   }
 
   const tone = TONES.has(fields.tone) ? fields.tone : 'professional';
@@ -109,7 +133,7 @@ export async function POST(req) {
     else if (model === 'gemini') letter = await callGemini(systemPrompt, userPrompt);
     else letter = await callMistral(systemPrompt, userPrompt);
     letter = appendSignature(letter);
-    return NextResponse.json({ letter, model, pickedProjects });
+    return withCors(NextResponse.json({ letter, model, pickedProjects }));
   } catch (err) {
     console.error('cover-letter error', err);
     return bad(502, err.message || 'Upstream model error');
