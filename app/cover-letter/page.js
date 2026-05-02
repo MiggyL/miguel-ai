@@ -2,13 +2,31 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import ModelSelector from '../components/ModelSelector';
+const MODELS = [
+  {
+    id: 'groq',
+    name: 'Llama 3.3 70B',
+    provider: 'Groq',
+    description: 'Fast and efficient',
+    dot: '#F55036',
+  },
+  {
+    id: 'mistral',
+    name: 'Mistral Large',
+    provider: 'Mistral AI',
+    description: 'European AI powerhouse',
+    dot: '#FA520F',
+  },
+  {
+    id: 'gemini',
+    name: 'Gemma 3 27B',
+    provider: 'Google',
+    description: "Google's Gemma model",
+    dot: '#1A73E8',
+  },
+];
 
-const MODELS_META = {
-  groq: { name: 'Llama 3.3 70B', dot: '#F55036' },
-  mistral: { name: 'Mistral Large', dot: '#FA520F' },
-  gemini: { name: 'Gemma 3 27B', dot: '#1A73E8' },
-};
+const MODELS_BY_ID = Object.fromEntries(MODELS.map((m) => [m.id, m]));
 
 const EXAMPLE = {
   company: 'Cambridge University Press & Assessment',
@@ -297,25 +315,23 @@ export default function CoverLetterPage() {
 
         </Card>
 
-        {/* CTA + model selector — same row, model dropdown opens upward */}
-        <div className="mt-4 flex items-center gap-2">
-          <ModelSelector
-            selectedModel={form.model}
-            onModelChange={(m) => set('model', m)}
-          />
+        {/* Split-button: gradient Draft CTA on the left, inline model picker on the right */}
+        <div
+          className={`group mt-4 relative flex items-stretch rounded-xl transition-all ${
+            canGenerate
+              ? 'shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/30'
+              : 'shadow-md'
+          } ${!canGenerate ? 'opacity-60' : ''}`}
+          style={{
+            background:
+              'linear-gradient(120deg, #7c3aed 0%, #6366f1 50%, #2563eb 100%)',
+          }}
+        >
           <button
             type="button"
             onClick={generate}
             disabled={!canGenerate}
-            className={`group relative flex-1 overflow-hidden rounded-xl px-6 py-3 text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-              canGenerate
-                ? 'text-white shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/30 hover:-translate-y-0.5'
-                : 'text-white shadow-md'
-            }`}
-            style={{
-              background:
-                'linear-gradient(120deg, #7c3aed 0%, #6366f1 50%, #2563eb 100%)',
-            }}
+            className="relative flex-1 overflow-hidden rounded-l-xl px-6 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed transition-transform hover:bg-white/5 active:scale-[0.99]"
           >
             <span className="relative z-10 flex items-center justify-center gap-2">
               {loading ? (
@@ -336,13 +352,18 @@ export default function CoverLetterPage() {
               <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
             )}
           </button>
-
-          {error && (
-            <p className="mt-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              {error}
-            </p>
-          )}
+          <div className="w-px bg-white/25 my-2.5" />
+          <InlineModelMenu
+            value={form.model}
+            onChange={(m) => set('model', m)}
+          />
         </div>
+
+        {error && (
+          <p className="mt-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            {error}
+          </p>
+        )}
 
         {/* Result */}
         {(letter || loading) && (
@@ -368,10 +389,10 @@ export default function CoverLetterPage() {
                       className="w-1.5 h-1.5 rounded-full"
                       style={{
                         backgroundColor:
-                          MODELS_META[usedModel]?.dot || '#fff',
+                          MODELS_BY_ID[usedModel]?.dot || '#fff',
                       }}
                     />
-                    {MODELS_META[usedModel]?.name || usedModel}
+                    {MODELS_BY_ID[usedModel]?.name || usedModel}
                   </span>
                 )}
               </div>
@@ -630,6 +651,99 @@ function Spinner() {
       <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:120ms]" />
       <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:240ms]" />
     </span>
+  );
+}
+
+function InlineModelMenu({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const onClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, []);
+  const current = MODELS_BY_ID[value] || MODELS[0];
+  return (
+    <div ref={ref} className="relative flex items-stretch">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((o) => !o);
+        }}
+        className="flex items-center gap-2 px-3.5 sm:px-4 rounded-r-xl text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 transition-colors"
+      >
+        <span
+          className="w-1.5 h-1.5 rounded-full"
+          style={{ backgroundColor: current.dot }}
+        />
+        <span className="hidden sm:inline">{current.name}</span>
+        <span className="sm:hidden">{current.name.split(' ')[0]}</span>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          aria-hidden="true"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute bottom-full right-0 mb-2 w-72 bg-white rounded-2xl border border-slate-200 shadow-xl z-50 overflow-hidden p-2">
+          {MODELS.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              onClick={() => {
+                onChange(m.id);
+                setOpen(false);
+              }}
+              className={`w-full text-left p-3 rounded-xl transition-colors ${
+                value === m.id
+                  ? 'bg-violet-50 ring-2 ring-violet-200'
+                  : 'hover:bg-slate-50'
+              }`}
+            >
+              <div className="flex items-start justify-between mb-0.5">
+                <div>
+                  <div className="font-semibold text-slate-900 text-sm flex items-center gap-1.5">
+                    <span
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{ backgroundColor: m.dot }}
+                    />
+                    {m.name}
+                  </div>
+                  <div className="text-xs text-slate-500 ml-3">{m.provider}</div>
+                </div>
+                {value === m.id && (
+                  <svg
+                    className="w-4 h-4 text-violet-600 shrink-0 mt-0.5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+              </div>
+              <p className="text-xs text-slate-600 ml-3">{m.description}</p>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
