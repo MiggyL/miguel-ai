@@ -1,12 +1,8 @@
 // POST /api/cover-letter
 //
 // Body: {
-//   mode: 'generate' | 'refine',
 //   model: 'groq' | 'gemini' | 'mistral',
-//   // generate mode:
 //   company, role, jd?, recruiterName?, tone?, language?, hook?,
-//   // refine mode:
-//   previousLetter, refinement,
 // }
 //
 // Reuses the model adapter shapes from app/api/chat/route.js but with a
@@ -20,10 +16,7 @@ import {
   rankProjects,
   appendSignature,
 } from '../../lib/profile-context.js';
-import {
-  buildCoverLetterUserPrompt,
-  buildRefinementUserPrompt,
-} from '../../lib/cover-letter-prompt.js';
+import { buildCoverLetterUserPrompt } from '../../lib/cover-letter-prompt.js';
 import { checkRateLimit, getClientIp } from '../../lib/rate-limit.js';
 
 const MODELS = new Set(['groq', 'gemini', 'mistral']);
@@ -36,8 +29,6 @@ const FIELD_LIMITS = {
   recruiterName: 120,
   hook: 500,
   jd: 6000,
-  refinement: 1000,
-  previousLetter: 6000,
 };
 
 const REFUSAL =
@@ -92,46 +83,25 @@ export async function POST(req) {
   const limitError = checkFieldLimits(fields);
   if (limitError) return bad(400, limitError);
 
-  const mode = fields.mode || 'generate';
-  let systemPrompt;
-  let userPrompt;
-  let pickedProjects = [];
+  const { company, role, jd, recruiterName, hook } = fields;
+  if (!company || !role) return bad(400, 'company and role are required');
 
-  if (mode === 'generate') {
-    const { company, role, jd, recruiterName, hook } = fields;
-    if (!company || !role) return bad(400, 'company and role are required');
-
-    if (anyInjection([company, role, jd, recruiterName, hook])) {
-      return NextResponse.json({ letter: REFUSAL, pickedProjects: [] });
-    }
-
-    const tone = TONES.has(fields.tone) ? fields.tone : 'professional';
-    const language = LANGUAGES.has(fields.language) ? fields.language : 'EN';
-
-    pickedProjects = rankProjects(jd, 2).map((p) => p.title);
-    systemPrompt = buildSystemPrompt({ jd, tone, language });
-    userPrompt = buildCoverLetterUserPrompt({
-      company,
-      role,
-      jd,
-      recruiterName,
-      hook,
-    });
-  } else if (mode === 'refine') {
-    const { previousLetter, refinement } = fields;
-    if (!previousLetter || !refinement) {
-      return bad(400, 'previousLetter and refinement are required');
-    }
-    if (anyInjection([refinement])) {
-      return NextResponse.json({ letter: REFUSAL });
-    }
-    // Use a neutral system prompt (no JD-relevant project re-ranking) — the
-    // previous letter already contains the picked projects.
-    systemPrompt = buildSystemPrompt({ jd: '', tone: 'professional', language: 'EN' });
-    userPrompt = buildRefinementUserPrompt({ previousLetter, refinement });
-  } else {
-    return bad(400, 'Invalid mode');
+  if (anyInjection([company, role, jd, recruiterName, hook])) {
+    return NextResponse.json({ letter: REFUSAL, pickedProjects: [] });
   }
+
+  const tone = TONES.has(fields.tone) ? fields.tone : 'professional';
+  const language = LANGUAGES.has(fields.language) ? fields.language : 'EN';
+
+  const pickedProjects = rankProjects(jd, 2).map((p) => p.title);
+  const systemPrompt = buildSystemPrompt({ jd, tone, language });
+  const userPrompt = buildCoverLetterUserPrompt({
+    company,
+    role,
+    jd,
+    recruiterName,
+    hook,
+  });
 
   try {
     let letter;

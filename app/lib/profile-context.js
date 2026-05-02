@@ -237,12 +237,25 @@ Programming & Graph Certified: Python, JavaScript, Neo4j (Graph Data Science, Pr
 
 https://miguel-app.pages.dev/`;
 
+// Normalize whitespace so the rendered letter looks like a proper letter:
+// (1) blank line after the salutation; (2) paragraphs separated by exactly
+// one blank line; (3) leading/trailing whitespace trimmed.
+function normalizeWhitespace(body) {
+  return body
+    .replace(/\r\n/g, '\n')
+    // Collapse 3+ blank lines to a single blank line.
+    .replace(/\n{3,}/g, '\n\n')
+    // Ensure a blank line after a salutation (Dear …, / Sehr geehrte … ,)
+    .replace(/^((?:Dear|Sehr geehrte[r]?|Hi)[^\n]*,)\n(?!\n)/m, '$1\n\n')
+    .trim();
+}
+
 // Append the canonical signature block to a letter body. Strips any
 // trailing sign-off the model may have added on its own ("Sincerely, X",
 // "Best regards", "Yours sincerely", etc.) so we don't end up with two.
 export function appendSignature(letterBody) {
   if (!letterBody) return letterBody;
-  let body = letterBody.trim();
+  let body = normalizeWhitespace(letterBody);
   // Strip from the last "Sincerely" / "Best" / "Yours" line onward, if any.
   const lines = body.split('\n');
   let cutAt = -1;

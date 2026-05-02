@@ -106,8 +106,6 @@ export default function CoverLetterPage() {
   const [letter, setLetter] = useState('');
   const [usedModel, setUsedModel] = useState('');
   const [picked, setPicked] = useState([]);
-  const [refineHistory, setRefineHistory] = useState([]);
-  const [refinement, setRefinement] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
@@ -142,7 +140,6 @@ export default function CoverLetterPage() {
     setLoading(true);
     setLetter('');
     setPicked([]);
-    setRefineHistory([]);
     try {
       const r = await fetch('/api/cover-letter', {
         method: 'POST',
@@ -158,35 +155,6 @@ export default function CoverLetterPage() {
       requestAnimationFrame(() => {
         resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const refine = async (e) => {
-    e?.preventDefault();
-    if (!refinement.trim() || !letter) return;
-    setError('');
-    setLoading(true);
-    try {
-      const r = await fetch('/api/cover-letter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mode: 'refine',
-          model: form.model,
-          previousLetter: letter,
-          refinement,
-        }),
-      });
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.error || 'Request failed');
-      setLetter(data.letter);
-      setUsedModel(data.model || form.model);
-      setRefineHistory((h) => [...h, refinement]);
-      setRefinement('');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -336,7 +304,7 @@ export default function CoverLetterPage() {
             <span className="relative z-10 flex items-center justify-center gap-2">
               {loading ? (
                 <>
-                  <Spinner /> {letter ? 'Refining…' : 'Drafting your letter…'}
+                  <Spinner /> Drafting your letter…
                 </>
               ) : (
                 <>
@@ -435,62 +403,6 @@ export default function CoverLetterPage() {
                     Talk to Miguel about this role
                     <span aria-hidden>→</span>
                   </a>
-                </div>
-
-                {/* Refine */}
-                <div className="mt-6 p-4 sm:p-5 rounded-2xl bg-white border border-slate-200">
-                  <h3 className="text-sm font-semibold text-slate-900 mb-1">
-                    Refine it
-                  </h3>
-                  <p className="text-xs text-slate-500 mb-3">
-                    Iteratively rewrite the letter — chat-style.
-                  </p>
-                  {refineHistory.length > 0 && (
-                    <ul className="mb-3 space-y-1">
-                      {refineHistory.map((h, i) => (
-                        <li
-                          key={i}
-                          className="text-xs text-slate-500 italic before:content-['→_']"
-                        >
-                          {h}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  <form onSubmit={refine} className="flex gap-2">
-                    <input
-                      type="text"
-                      value={refinement}
-                      onChange={(e) => setRefinement(e.target.value)}
-                      placeholder="Make it shorter / translate to German / add a line about Azure…"
-                      maxLength={1000}
-                      className="flex-1 px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-violet-400 focus:ring-2 focus:ring-violet-500/20"
-                    />
-                    <button
-                      type="submit"
-                      disabled={loading || !refinement.trim()}
-                      className="px-4 py-2.5 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 disabled:opacity-50 transition-colors"
-                    >
-                      {loading ? '…' : 'Refine'}
-                    </button>
-                  </form>
-                  <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1.5">
-                    {[
-                      'Make it shorter',
-                      'More enthusiastic',
-                      'Translate to German',
-                      'Add a line about Azure',
-                    ].map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => setRefinement(s)}
-                        className="text-xs text-violet-600 hover:text-violet-700 hover:underline"
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               </>
             )}
