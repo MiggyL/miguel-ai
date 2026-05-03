@@ -226,12 +226,19 @@ function HomeContent() {
 
   return (
     <div className="min-h-screen bg-[#F0F4F8] text-[#1f1f1f] overflow-x-hidden">
-      {/* Top Bar - Light Gemini Style */}
+      {/* Top Bar - Light Gemini Style — desktop: name left / tabs centered /
+          socials right. Mobile: name + socials on row 1, tabs on row 2 so
+          3 tabs don't squeeze the socials off-screen. */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-3 grid grid-cols-3 items-center gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-base sm:text-lg font-medium text-gray-800 truncate">Miguel Lacanienta</span>
-            <VersionToggle />
+        <div className="max-w-4xl mx-auto px-4 py-2.5 sm:py-3 flex flex-col gap-2 sm:grid sm:grid-cols-3 sm:items-center sm:gap-3">
+          <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-base sm:text-lg font-medium text-gray-800 truncate">Miguel Lacanienta</span>
+              <VersionToggle />
+            </div>
+            <div className="sm:hidden">
+              <SocialIcons />
+            </div>
           </div>
           <nav className="flex justify-center items-center gap-1">
             <a
@@ -254,7 +261,7 @@ function HomeContent() {
               Cover Letter
             </a>
           </nav>
-          <div className="flex justify-end">
+          <div className="hidden sm:flex justify-end">
             <SocialIcons />
           </div>
         </div>
