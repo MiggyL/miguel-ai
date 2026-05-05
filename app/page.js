@@ -23,7 +23,7 @@ const SOCIALS = [
   },
   {
     name: 'YouTube',
-    href: 'https://youtube.com/playlist?list=PLwgavg1OXIfGKhX9FHoEG0aIbhMaj5dEH',
+    href: 'https://www.youtube.com/playlist?list=PLwgavg1OXIfHLX6Qj4jHYGD5Os5n4X8JV',
     svg: (
       <svg viewBox="0 0 24 24" className="w-full h-full" aria-hidden="true">
         <rect x="0" y="3.5" width="24" height="17" rx="4" fill="#FF0000" />
