@@ -23,6 +23,24 @@ export default function FloatingControls({
   const fabRef = useRef(null);
   const needleRef = useRef(null);
 
+  // Close-delay timer — when the cursor briefly exits the wrapper (e.g.
+  // crossing the gap between FAB and panel) we don't want the panel to
+  // snap shut. Hold the close behind a 200 ms timer; cancel on re-enter.
+  // Standard hover-menu pattern (Radix HoverCard, MUI Menu, etc.).
+  const closeTimerRef = useRef(null);
+  const cancelClose = () => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  };
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimerRef.current = setTimeout(() => setOpen(false), 200);
+  };
+  // Don't leak the timer if the component unmounts mid-delay.
+  useEffect(() => () => cancelClose(), []);
+
   // Detect whether the device has true hover (desktop with mouse). Touch
   // devices keep the existing click-to-toggle behavior.
   useEffect(() => {
@@ -135,9 +153,14 @@ export default function FloatingControls({
   return (
     <div
       ref={rootRef}
-      className="fixed bottom-4 right-4 z-[60] flex flex-col items-end gap-2 pointer-events-none"
-      onMouseEnter={hoverCapable ? () => setOpen(true) : undefined}
-      onMouseLeave={hoverCapable ? () => setOpen(false) : undefined}
+      // gap-0 (was gap-2): the panel and FAB now sit flush, eliminating
+      // the transit gap that was triggering mouseleave when the cursor
+      // moved between them. Each element's own shadow gives enough
+      // visual separation. Combined with the close-delay timer above,
+      // the menu stays open under normal hover speeds.
+      className="fixed bottom-4 right-4 z-[60] flex flex-col items-end gap-0 pointer-events-none"
+      onMouseEnter={hoverCapable ? () => { cancelClose(); setOpen(true); } : undefined}
+      onMouseLeave={hoverCapable ? scheduleClose : undefined}
     >
       {/* Single frosted-dark panel with rows inside — Next.js dev style.
           Wrapper is pointer-events-none so the empty space around the
