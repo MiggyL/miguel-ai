@@ -23,6 +23,24 @@ export default function FloatingControls({
   const fabRef = useRef(null);
   const needleRef = useRef(null);
 
+  // Close-delay timer — when the cursor briefly exits the wrapper (e.g.
+  // crossing the gap between FAB and panel) we don't want the panel to
+  // snap shut. Hold the close behind a 200 ms timer; cancel on re-enter.
+  // Standard hover-menu pattern (Radix HoverCard, MUI Menu, etc.).
+  const closeTimerRef = useRef(null);
+  const cancelClose = () => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  };
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimerRef.current = setTimeout(() => setOpen(false), 200);
+  };
+  // Don't leak the timer if the component unmounts mid-delay.
+  useEffect(() => () => cancelClose(), []);
+
   // Detect whether the device has true hover (desktop with mouse). Touch
   // devices keep the existing click-to-toggle behavior.
   useEffect(() => {
@@ -135,11 +153,18 @@ export default function FloatingControls({
   return (
     <div
       ref={rootRef}
-      className="fixed bottom-4 right-4 z-[60] flex flex-col items-end gap-2"
-      onMouseEnter={hoverCapable ? () => setOpen(true) : undefined}
-      onMouseLeave={hoverCapable ? () => setOpen(false) : undefined}
+      // gap-0 (was gap-2): the panel and FAB now sit flush, eliminating
+      // the transit gap that was triggering mouseleave when the cursor
+      // moved between them. Each element's own shadow gives enough
+      // visual separation. Combined with the close-delay timer above,
+      // the menu stays open under normal hover speeds.
+      className="fixed bottom-4 right-4 z-[60] flex flex-col items-end gap-0 pointer-events-none"
+      onMouseEnter={hoverCapable ? () => { cancelClose(); setOpen(true); } : undefined}
+      onMouseLeave={hoverCapable ? scheduleClose : undefined}
     >
-      {/* Single frosted-dark panel with rows inside — Next.js dev style */}
+      {/* Single frosted-dark panel with rows inside — Next.js dev style.
+          Wrapper is pointer-events-none so the empty space around the
+          FAB/panel doesn't hijack taps from page content beneath it. */}
       <div
         className={`bg-gray-900/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl overflow-hidden min-w-[11rem] transition-all duration-200 origin-bottom-right ${
           open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-95 pointer-events-none'
@@ -218,28 +243,6 @@ export default function FloatingControls({
           <span>CV</span>
         </a>
 
-        {/* Cover Letter — fountain pen on paper, points to the miguel-ai generator page */}
-        <a
-          href="https://miguel-ai.vercel.app/cover-letter"
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => setOpen(false)}
-          className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer no-underline border-t border-white/10"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-            {/* Paper */}
-            <path d="M5 3h11l3 3v15a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" fill="#F8FAFC" stroke="#94A3B8" strokeWidth="1" />
-            <path d="M16 3v3h3" fill="#E2E8F0" />
-            {/* Text lines */}
-            <line x1="6" y1="9" x2="13" y2="9" stroke="#94A3B8" strokeWidth="0.8" strokeLinecap="round" />
-            <line x1="6" y1="11.5" x2="15" y2="11.5" stroke="#94A3B8" strokeWidth="0.8" strokeLinecap="round" />
-            <line x1="6" y1="14" x2="11" y2="14" stroke="#94A3B8" strokeWidth="0.8" strokeLinecap="round" />
-            {/* Fountain pen tip drawing on the page */}
-            <path d="M16 18l3-3 1.5 1.5-3 3-1.8 0.3 0.3-1.8z" fill="#1D4ED8" stroke="#1E3A8A" strokeWidth="0.4" strokeLinejoin="round" />
-          </svg>
-          <span>Cover Letter</span>
-        </a>
-
         {/* Play Game — Chrome dino, last in the menu */}
         <button
           onClick={() => {
@@ -257,7 +260,7 @@ export default function FloatingControls({
       <button
         ref={fabRef}
         onClick={() => setOpen((o) => !o)}
-        className="w-12 h-12 rounded-full shadow-lg hover:shadow-xl cursor-pointer transition-shadow overflow-hidden p-0 bg-transparent"
+        className="w-12 h-12 rounded-full shadow-lg hover:shadow-xl cursor-pointer transition-shadow overflow-hidden p-0 bg-transparent pointer-events-auto"
         aria-label={open ? 'Close controls' : 'Open controls'}
       >
         <svg viewBox="2 2 96 96" width="100%" height="100%" aria-hidden="true">

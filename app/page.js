@@ -23,7 +23,7 @@ const SOCIALS = [
   },
   {
     name: 'YouTube',
-    href: 'https://youtube.com/playlist?list=PLwgavg1OXIfGKhX9FHoEG0aIbhMaj5dEH',
+    href: 'https://www.youtube.com/playlist?list=PLwgavg1OXIfHLX6Qj4jHYGD5Os5n4X8JV',
     svg: (
       <svg viewBox="0 0 24 24" className="w-full h-full" aria-hidden="true">
         <rect x="0" y="3.5" width="24" height="17" rx="4" fill="#FF0000" />
@@ -226,28 +226,44 @@ function HomeContent() {
 
   return (
     <div className="min-h-screen bg-[#F0F4F8] text-[#1f1f1f] overflow-x-hidden">
-      {/* Top Bar - Light Gemini Style */}
+      {/* Top Bar - Light Gemini Style — desktop: name left / tabs centered /
+          socials right. Mobile: name + socials on row 1, tabs on row 2 so
+          3 tabs don't squeeze the socials off-screen. */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center bg-gray-100 rounded-full p-0.5">
-              <a
-                href="https://miguel-app.pages.dev/"
-                className="px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-900 shadow-sm"
-              >
-                Resume
-              </a>
-              <a
-                href="https://miguel-folio.pages.dev/"
-                className="px-3 py-1 rounded-full text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                Portfolio
-              </a>
+        <div className="max-w-4xl mx-auto px-4 py-2.5 sm:py-3 flex flex-col gap-2 sm:grid sm:grid-cols-3 sm:items-center sm:gap-3">
+          <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-base sm:text-lg font-medium text-gray-800 truncate">Miguel Lacanienta</span>
+              <VersionToggle />
             </div>
-            <span className="text-lg font-medium text-gray-800">Miguel Lacanienta</span>
-            <VersionToggle />
+            <div className="sm:hidden">
+              <SocialIcons />
+            </div>
           </div>
-          <SocialIcons />
+          <nav className="flex justify-center items-center gap-1">
+            <a
+              href="https://miguel-app.pages.dev/"
+              aria-current="page"
+              className="px-3 py-1.5 rounded-md text-xs font-medium bg-gray-900 text-white"
+            >
+              Resume
+            </a>
+            <a
+              href="https://miguel-folio.pages.dev/"
+              className="px-3 py-1.5 rounded-md text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            >
+              Portfolio
+            </a>
+            <a
+              href="/cover-letter"
+              className="px-3 py-1.5 rounded-md text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            >
+              Cover Letter
+            </a>
+          </nav>
+          <div className="hidden sm:flex justify-end">
+            <SocialIcons />
+          </div>
         </div>
       </header>
 
