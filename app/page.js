@@ -9,6 +9,7 @@ import VersionToggle from './components/VersionToggle';
 import Banner from './components/Banner';
 import ReactMarkdown from 'react-markdown';
 import { getVideoPath, ASSET_CONFIG } from '@/lib/assets';
+import { STATUS, DETAIL } from './lib/profile';
 
 const SOCIALS = [
   {
@@ -232,9 +233,20 @@ function HomeContent() {
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 py-2.5 sm:py-3 flex flex-col gap-2 sm:grid sm:grid-cols-3 sm:items-center sm:gap-3">
           <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="text-base sm:text-lg font-medium text-gray-800 truncate">Miguel Lacanienta</span>
-              <VersionToggle />
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-base sm:text-lg font-medium text-gray-800 truncate">Miguel Lacanienta</span>
+                <VersionToggle />
+              </div>
+              <div className="mt-1 flex items-center gap-1.5 min-w-0">
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-green-100 text-green-700 text-[10px] sm:text-xs font-semibold leading-none shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                  {STATUS}
+                </span>
+                <span className="text-[10px] sm:text-xs text-gray-500 truncate leading-tight">
+                  {DETAIL}
+                </span>
+              </div>
             </div>
             <div className="sm:hidden">
               <SocialIcons />
