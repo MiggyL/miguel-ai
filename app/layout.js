@@ -30,6 +30,13 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        {/* Warm the connection to the media CDN (miguel-app.pages.dev) so
+            <video src> requests don't pay the DNS+TLS handshake on first
+            paint. ~100-200ms perceived speedup. */}
+        <link rel="preconnect" href="https://miguel-app.pages.dev" />
+        <link rel="dns-prefetch" href="https://miguel-app.pages.dev" />
+      </head>
       <body>{children}</body>
     </html>
   )

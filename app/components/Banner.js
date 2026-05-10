@@ -8,6 +8,11 @@ import Subtitles from './Subtitles';
 import FloatingControls from './FloatingControls';
 
 const CV_URL = 'https://drive.google.com/file/d/1RyQRN930zeyjLZe2o_J52zWEB1kWyWQF';
+// WhatsApp click-to-chat — wa.me expects digits only, no '+' or spaces.
+const MIGUEL_WHATSAPP = '639499934007';
+const WHATSAPP_HREF = `https://wa.me/${MIGUEL_WHATSAPP}?text=${encodeURIComponent(
+  `Hi Miguel — I came across your portfolio and would like to get in touch.`
+)}`;
 const ChromeDino = dynamic(() => import('react-chrome-dino'), { ssr: false });
 
 const V2_BASE = `${ASSET_CONFIG.basePath}/v2`;
@@ -272,6 +277,7 @@ export default function Banner({ onChatHighlight, centerSlot, onLanguageChange }
           loop
           muted
           playsInline
+          poster={`${V2_BASE}/bg-poster.jpg`}
           onClick={overlayVisible ? () => handleSectionClick('About') : undefined}
           className={`w-full h-full object-cover ${overlayVisible ? 'cursor-pointer' : ''}`}
           src={`${V2_BASE}/bg.mp4`}
@@ -284,6 +290,7 @@ export default function Banner({ onChatHighlight, centerSlot, onLanguageChange }
         loop
         muted
         playsInline
+        poster={`${V2_BASE}/idle-poster.jpg`}
         onClick={overlayVisible ? () => handleSectionClick('About') : undefined}
         className={`absolute bottom-0 right-0 object-cover rounded-br-2xl h-[45%] md:h-[35%] ${overlayVisible ? 'cursor-pointer' : ''}`}
         style={{ aspectRatio: '1/1', zIndex: 5 }}
@@ -431,7 +438,7 @@ export default function Banner({ onChatHighlight, centerSlot, onLanguageChange }
 
       {/* Top-left: EN|DE toggle + Play intro — hidden during section playback */}
       <div className={`absolute top-3 left-3 z-[6] flex items-center gap-2 transition-opacity duration-300 ${overlayVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        <div className="flex items-center gap-1 px-2 py-0.5 bg-white/10 backdrop-blur-sm border border-white/15 rounded-md opacity-50 hover:opacity-100 transition-all">
+        <div className="flex items-center gap-1 px-2 py-0.5 bg-white/10 backdrop-blur-sm border border-white/15 rounded-md transition-all">
           <button onClick={() => setLanguage('EN')} className={`text-[11px] sm:text-xs font-medium tracking-wide cursor-pointer transition-colors ${language === 'EN' ? 'text-white' : 'text-white/40 hover:text-white/70'}`}>
             EN
           </button>
@@ -440,8 +447,8 @@ export default function Banner({ onChatHighlight, centerSlot, onLanguageChange }
             DE
           </button>
         </div>
-        <button onClick={() => handleSectionClick('About')} className="opacity-50 hover:opacity-100 transition-opacity cursor-pointer" aria-label="Play about">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="none">
+        <button onClick={() => handleSectionClick('About')} className="text-white/70 hover:text-white transition-colors cursor-pointer" aria-label="Play about">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none">
             <polygon points="6 3 20 12 6 21 6 3" />
           </svg>
         </button>
@@ -493,17 +500,33 @@ export default function Banner({ onChatHighlight, centerSlot, onLanguageChange }
       )}
 
       {/* Bottom-left: Resume button */}
-      <a href="https://drive.google.com/file/d/1RyQRN930zeyjLZe2o_J52zWEB1kWyWQF" target="_blank" rel="noopener noreferrer" className="absolute bottom-3 left-3 z-[6] px-2 py-0.5 bg-white/10 backdrop-blur-sm border border-white/15 rounded-md text-white/70 text-[11px] sm:text-xs font-medium tracking-wide hover:text-white hover:bg-white/20 transition-all cursor-pointer opacity-50 hover:opacity-100 no-underline">
-        CV
-      </a>
+      {/* Bottom-left: CV + WhatsApp pills (same chrome as the other controls) */}
+      <div className="absolute bottom-3 left-3 z-[6] flex items-center gap-1.5">
+        <a
+          href={CV_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-2 py-0.5 bg-white/10 backdrop-blur-sm border border-white/15 rounded-md text-white/70 text-[11px] sm:text-xs font-medium tracking-wide hover:text-white hover:bg-white/20 transition-all cursor-pointer opacity-50 hover:opacity-100 no-underline"
+        >
+          CV
+        </a>
+        <a
+          href={WHATSAPP_HREF}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-2 py-0.5 bg-white/10 backdrop-blur-sm border border-white/15 rounded-md text-white/70 text-[11px] sm:text-xs font-medium tracking-wide hover:text-white hover:bg-white/20 transition-all cursor-pointer no-underline"
+        >
+          WhatsApp
+        </a>
+      </div>
 
       {/* Audio toggle button */}
       <button
         onClick={toggleAudio}
-        className="absolute top-3 right-3 z-10 opacity-50 hover:opacity-80 transition-opacity cursor-pointer"
+        className="absolute top-3 right-3 z-10 text-white/70 hover:text-white transition-colors cursor-pointer"
         aria-label={isMuted ? 'Unmute background music' : 'Mute background music'}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 18V5l12-2v13" />
           <circle cx="6" cy="18" r="3" />
           <circle cx="18" cy="16" r="3" />
@@ -547,6 +570,7 @@ export default function Banner({ onChatHighlight, centerSlot, onLanguageChange }
         onPlayAbout={() => handleSectionClick('About')}
         onPlayGame={() => setGameOpen(true)}
         cvHref={CV_URL}
+        whatsappHref={WHATSAPP_HREF}
       />
 
       {gameOpen && (
